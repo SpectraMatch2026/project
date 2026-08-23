@@ -10,7 +10,12 @@ from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from modules.ReportUtils import StyleH1
-from modules.ReportTranslations import get_translator
+from modules.ReportTranslations import (
+    get_translator,
+    translate_decision,
+    format_color_method_label,
+    format_pattern_method_label,
+)
 
 # Configuration
 PAGE_WIDTH, PAGE_HEIGHT = A4
@@ -68,6 +73,7 @@ style_footer = ParagraphStyle('ReceiptFooter', parent=styles['Normal'], fontName
 # Analysis Box Styles
 style_box_label = ParagraphStyle('BoxLabel', parent=styles['Normal'], fontName=PDF_FONT_BOLD, fontSize=7, alignment=TA_CENTER, textColor=colors.gray)
 style_box_value = ParagraphStyle('BoxValue', parent=styles['Normal'], fontName=PDF_FONT_BOLD, fontSize=10, alignment=TA_CENTER)
+style_box_note = ParagraphStyle('BoxNote', parent=styles['Normal'], fontName=PDF_FONT, fontSize=6, leading=7, alignment=TA_CENTER, textColor=colors.gray)
 
 def draw_header_footer(canvas, doc, report_lang='en'):
     canvas.saveState()
@@ -87,9 +93,26 @@ def make_draw_header_footer(report_lang='en'):
         draw_header_footer(canvas, doc, report_lang)
     return _draw
 
+
+def _normalize_processed_image_item(item):
+    if isinstance(item, dict):
+        return {
+            'label': str(item.get('label', '')),
+            'image': item.get('image'),
+            'compact': bool(item.get('compact', False)),
+        }
+    if isinstance(item, (list, tuple)) and len(item) >= 2:
+        return {
+            'label': str(item[0]),
+            'image': item[1],
+            'compact': False,
+        }
+    return {'label': '', 'image': None, 'compact': False}
+
 def generate_receipt(pdf_path, settings, processed_images, report_id, operator_name, date_str, time_str, 
                      color_score=0, pattern_score=0, overall_score=0, decision="PENDING",
-                     color_points=None, pattern_points=None, software_version="3.0.0", mode="dual"):
+                     color_points=None, pattern_points=None, software_version="3.0.0", mode="dual",
+                     color_method_key=None, pattern_method_key=None):
     doc = SimpleDocTemplate(pdf_path, pagesize=A4, 
                             leftMargin=MARGIN_H, rightMargin=MARGIN_H, 
                             topMargin=MARGIN_V, bottomMargin=MARGIN_V)
@@ -154,7 +177,7 @@ def generate_receipt(pdf_path, settings, processed_images, report_id, operator_n
         single_title = f"[ {tr('single_image_unit_settings')} ]"
         single_content.append(Paragraph(single_title, style_section_head))
         sampling_mode_val = settings.get('sampling_mode', 'random')
-        sampling_mode_translated = tr(sampling_mode_val) if sampling_mode_val in ['random', 'manual'] else sampling_mode_val
+        sampling_mode_translated = tr(sampling_mode_val, sampling_mode_val)
         single_content.append(Paragraph(f"{tr('sampling_mode')}: {sampling_mode_translated}", style_item))
         single_content.append(Paragraph(f"{tr('sampling_count')}: {settings.get('region_count', 5)}", style_item))
         
@@ -182,28 +205,24 @@ def generate_receipt(pdf_path, settings, processed_images, report_id, operator_n
         left_content.append(Paragraph(f"{tr('timezone_offset')}: UTC{'+' if settings.get('timezone_offset', 3) >= 0 else ''}{settings.get('timezone_offset', 3)}", style_item))
         report_lang_display = 'T\u00fcrk\u00e7e' if report_lang == 'tr' else 'English'
         left_content.append(Paragraph(f"{tr('report_language')}: {report_lang_display}", style_item))
+        if settings.get('receipt_alignment_applied'):
+            alignment_name = settings.get('receipt_alignment_name') or settings.get('alignment_mode', 'direct')
+            left_content.append(Paragraph(f"{tr('alignment_technique')}: {alignment_name}", style_item))
         
         # Color Unit Settings block
         color_title = f"[ {tr('color_unit_settings')} ]"
         left_content.append(Paragraph(color_title, style_section_head))
         scoring_method = settings.get('color_scoring_method', 'delta_e')
-        if scoring_method == 'csi2000':
-            scoring_display = tr('csi2000_method')
-        elif scoring_method == 'csi':
-            scoring_display = tr('csi_method')
-        else:
-            scoring_display = tr('delta_e_2000')
+        scoring_display = format_color_method_label(scoring_method, report_lang)
         left_content.append(Paragraph(f"{tr('color_scoring_method')}: {scoring_display}", style_item_bold))
         c_thresh = settings.get('thresholds', {})
         sampling_mode_val = settings.get('sampling_mode', 'random')
-        sampling_mode_translated = tr(sampling_mode_val) if sampling_mode_val in ['random', 'manual'] else sampling_mode_val
+        sampling_mode_translated = tr(sampling_mode_val, sampling_mode_val)
         left_content.append(Paragraph(f"{tr('pass_threshold')}: {c_thresh.get('pass', 2.0)}", style_item))
         left_content.append(Paragraph(f"{tr('cond_threshold')}: {c_thresh.get('conditional', 5.0)}", style_item))
         left_content.append(Paragraph(f"{tr('global_thresh')}: {settings.get('global_threshold', 5.0)}", style_item))
         left_content.append(Paragraph(f"{tr('sampling_mode')}: {sampling_mode_translated}", style_item))
         left_content.append(Paragraph(f"{tr('sampling_count')}: {settings.get('region_count', 5)}", style_item))
-        left_content.append(Paragraph(f"{tr('csi_good')}: {settings.get('csi_good', 90.0)}", style_item))
-        left_content.append(Paragraph(f"{tr('csi_warn')}: {settings.get('csi_warn', 70.0)}", style_item))
         
         # RIGHT CONTENT (Pattern Unit)
         right_content = []
@@ -212,10 +231,7 @@ def generate_receipt(pdf_path, settings, processed_images, report_id, operator_n
         
         # Pattern Scoring Method
         pat_method = settings.get('pattern_scoring_method', 'all')
-        pat_method_map = {'all': 'pattern_method_all', 'ssim': 'pattern_method_ssim',
-                          'gradient': 'pattern_method_gradient', 'phase': 'pattern_method_phase',
-                          'structural': 'pattern_method_structural'}
-        pat_display = tr(pat_method_map.get(pat_method, 'pattern_method_all'))
+        pat_display = format_pattern_method_label(pat_method, report_lang)
         right_content.append(Paragraph(f"{tr('pattern_scoring_method')}: {pat_display}", style_item_bold))
         
         # Extract Pattern Settings
@@ -225,8 +241,8 @@ def generate_receipt(pdf_path, settings, processed_images, report_id, operator_n
         else:
              p_sets = settings 
              
-        right_content.append(Paragraph(f"{tr('ssim_pass')}: {p_sets.get('ssim_pass', 85.0)}%", style_item))
-        right_content.append(Paragraph(f"{tr('ssim_cond')}: {p_sets.get('ssim_cond', 70.0)}%", style_item))
+        right_content.append(Paragraph(f"{tr('ssim_pass')}: {p_sets.get('ssim_pass', 0.85)}", style_item))
+        right_content.append(Paragraph(f"{tr('ssim_cond')}: {p_sets.get('ssim_cond', 0.70)}", style_item))
         right_content.append(Paragraph("-", style_item))
         right_content.append(Paragraph(f"{tr('grad_pass')}: {p_sets.get('grad_pass', 85.0)}%", style_item))
         right_content.append(Paragraph(f"{tr('grad_cond')}: {p_sets.get('grad_cond', 70.0)}%", style_item))
@@ -239,6 +255,12 @@ def generate_receipt(pdf_path, settings, processed_images, report_id, operator_n
         right_content.append(Paragraph(f"{tr('structural_cond')}: {p_sets.get('structural_cond', 70.0)}%", style_item))
         right_content.append(Paragraph("-", style_item))
         right_content.append(Paragraph(f"{tr('pattern_global_threshold')}: {settings.get('global_threshold', 75.0)}%", style_item))
+        right_content.append(Paragraph("-", style_item))
+        right_content.append(Paragraph(f"{tr('grad_diff_sensitivity')}: {settings.get('gradient_diff_sensitivity', 7)}", style_item))
+        right_content.append(Paragraph(f"{tr('phase_diff_sensitivity')}: {settings.get('phase_diff_sensitivity', 7)}", style_item))
+        right_content.append(Paragraph(f"{tr('grad_bound_sensitivity')}: {settings.get('gradient_boundary_sensitivity', 4)}", style_item))
+        right_content.append(Paragraph(f"{tr('phase_bound_sensitivity')}: {settings.get('phase_boundary_sensitivity', 8)}", style_item))
+        right_content.append(Paragraph(f"{tr('structural_sensitivity')}: {settings.get('structural_sensitivity', 10)}", style_item))
     
         # Merge Top Configuration
         t_config = Table([
@@ -264,7 +286,8 @@ def generate_receipt(pdf_path, settings, processed_images, report_id, operator_n
 
     # Define lists with translation keys
     color_sections_list = [
-        ('color_spaces', 'color_spaces'), ('rgb', 'rgb'), ('lab', 'lab'), 
+        ('color_spaces', 'color_spaces'), ('exec_summary', 'exec_summary'), ('visual_comparison', 'visual_comparison'),
+        ('rgb', 'rgb'), ('lab', 'lab'), 
         ('xyz', 'xyz'), ('cmyk', 'cmyk'), ('diff_metrics', 'diff_metrics'), 
         ('stats', 'stats'), ('detailed_lab', 'detailed_lab'), 
         ('visualizations', 'visualizations'), ('spectral', 'spectral'), 
@@ -278,6 +301,7 @@ def generate_receipt(pdf_path, settings, processed_images, report_id, operator_n
         ('phase', 'phase'), ('structural', 'structural'),
         ('fourier', 'fourier'), ('glcm', 'glcm'),
         ('gradient_boundary', 'gradient_boundary'), ('phase_boundary', 'phase_boundary'), 
+        ('summary', 'summary'), ('conclusion', 'conclusion'),
         ('recommendations_pattern', 'recommendations_pattern')
     ]
 
@@ -348,26 +372,38 @@ def generate_receipt(pdf_path, settings, processed_images, report_id, operator_n
     # 4. PROCESSED IMAGES (Last section before footer)
     elements.append(Spacer(1, 1*mm))
     elements.append(Paragraph(tr('processed_images_log'), style_section_head))
+    if settings.get('receipt_alignment_applied') and settings.get('receipt_alignment_name'):
+        elements.append(Paragraph(f"{tr('alignment_technique')}: {settings.get('receipt_alignment_name')}", style_item))
     
     img_row = []
+    col_widths = []
     safe_images = processed_images if processed_images else []
-    for label, img_obj in safe_images:
-        if hasattr(img_obj, 'draw'): 
-            # Resize
-            aspect = img_obj.imageWidth / img_obj.imageHeight
-            thumb_w = 32*mm
-            thumb_h = thumb_w / aspect
-            img_obj.drawWidth = thumb_w
-            img_obj.drawHeight = thumb_h
-            
-            cell = [
-                Paragraph(label, style_item_bold),
-                img_obj
-            ]
-            img_row.append(cell)
-            
+    normalized_images = [_normalize_processed_image_item(item) for item in safe_images]
+    visible_images = [item for item in normalized_images if hasattr(item.get('image'), 'draw')]
+
+    for item in visible_images:
+        img_obj = item['image']
+        aspect = img_obj.imageWidth / img_obj.imageHeight
+        if len(visible_images) >= 3 and item.get('compact'):
+            thumb_w = 28 * mm
+            col_w = 42 * mm
+        elif len(visible_images) == 3:
+            thumb_w = 42 * mm
+            col_w = 62 * mm
+        else:
+            thumb_w = 32 * mm
+            col_w = 50 * mm
+        thumb_h = thumb_w / aspect
+        img_obj.drawWidth = thumb_w
+        img_obj.drawHeight = thumb_h
+        img_row.append([
+            Paragraph(item['label'], style_item_bold),
+            img_obj
+        ])
+        col_widths.append(col_w)
+
     if img_row:
-        t_imgs = Table([img_row], colWidths=[50*mm]*len(img_row))
+        t_imgs = Table([img_row], colWidths=col_widths)
         t_imgs.setStyle(TableStyle([
             ('VALIGN', (0,0), (-1,-1), 'TOP'),
             ('ALIGN', (0,0), (-1,-1), 'CENTER'),
@@ -393,6 +429,7 @@ def generate_receipt(pdf_path, settings, processed_images, report_id, operator_n
     # Determine Decision Color
     decision_color = colors.black
     decision_text = str(decision).upper()
+    decision_display = translate_decision(decision_text, report_lang)
     if decision_text == 'ACCEPT':
         decision_color = colors.green
     elif decision_text == 'REJECT' or decision_text == 'FAIL':
@@ -404,16 +441,28 @@ def generate_receipt(pdf_path, settings, processed_images, report_id, operator_n
     # 4 Columns: Decision | Color Score | Pattern Score | Overall
     
     # Decisions Cell
-    cell_decision = create_score_cell(tr('decision'), decision_text, decision_color)
+    cell_decision = create_score_cell(tr('decision'), decision_display, decision_color)
     
     # Color Score Cell
-    cell_color = create_score_cell(tr('color_score'), f"{color_score:.1f}")
+    cell_color = create_score_cell(
+        tr('color_score'),
+        f"{float(color_score):.4f}" if mode != "single" else f"{float(color_score):.1f}"
+    )
     
     # Pattern Score Cell
     cell_pattern = create_score_cell(tr('pattern_score'), f"{pattern_score:.1f}")
     
     # Overall Score Cell
-    cell_overall = create_score_cell(tr('overall_score'), f"{overall_score:.1f}")
+    overall_method = format_color_method_label(color_method_key or settings.get('color_scoring_method', 'delta_e'), report_lang)
+    overall_big = f"{float(pattern_score):.1f} / {float(color_score):.4f}"
+    overall_note = f"{tr('overall_score_note')} ({overall_method})"
+    cell_overall = [
+        Paragraph(tr('overall_score'), style_box_label),
+        Spacer(1, 1*mm),
+        Paragraph(overall_big, ParagraphStyle('OverallVal', parent=style_box_value, fontSize=9.5)),
+        Spacer(1, 0.5*mm),
+        Paragraph(f"{overall_note}<br/>{tr('overall_score_explainer')}", style_box_note),
+    ]
     
     # Table for Results
     if mode == "single":
@@ -424,7 +473,7 @@ def generate_receipt(pdf_path, settings, processed_images, report_id, operator_n
     else:
         t_results = Table([
             [cell_decision, cell_color, cell_pattern, cell_overall]
-        ], colWidths=[42*mm, 42*mm, 42*mm, 42*mm])
+        ], colWidths=[34*mm, 34*mm, 34*mm, 66*mm])
     
     t_results.setStyle(TableStyle([
         ('BOX', (0,0), (-1,-1), 1, colors.grey), # Border around whole table

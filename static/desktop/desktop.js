@@ -40,24 +40,35 @@ var T={en:{
 'viewer.click.ref':'Click to load reference','viewer.click.sample':'Click to load sample',
 'prop.general':'General','prop.operator':'Operator','prop.timezone':'Timezone',
 'prop.report.lang':'Report Lang','prop.color.unit':'Color Unit','prop.pass.thresh':'Pass Threshold',
-'prop.cond.thresh':'Conditional','prop.global.accept':'Global Accept.','prop.csi.good':'CSI Good',
-'prop.csi.warn':'CSI Warning','prop.sampling.count':'Sampling Count',
+'prop.cond.thresh':'Conditional','prop.global.accept':'Global Accept.','prop.csi.good':'CSI Pass',
+'prop.csi.warn':'CSI Conditional','prop.sampling.count':'Sampling Count',
 'prop.lab.thresh.dl':'ΔL* Threshold','prop.lab.thresh.da':'Δa* Threshold','prop.lab.thresh.db':'Δb* Threshold','prop.lab.thresh.mag':'Magnitude Threshold',
 'prop.sampling':'Sampling Configuration','prop.sampling.mode':'Mode','prop.points.count':'Points',
 'prop.manual.pts':'Manual','prop.random.pts':'Random',
 'prop.select.points':'Select Points','prop.complete.random':'Complete Randomly',
+'prop.coord.entry':'Add Point by Coordinates','prop.coord.x':'X','prop.coord.y':'Y',
+'prop.coord.add':'Add','prop.coord.points':'Entered Points','prop.coord.clear':'Clear All',
+'prop.coord.none':'No coordinate points added yet.','prop.coord.invalid':'Invalid coordinates.',
+'prop.coord.duplicate':'Point already exists.','prop.coord.outside':'Point is outside the selected region.',
+'prop.coord.added':'Point added','prop.coord.removed':'Point removed','prop.coord.image.required':'Load image(s) first.',
 'prop.scoring.basis':'Scoring Basis','prop.structural.match':'Structural','prop.pattern.unit':'Pattern Unit','prop.gradient':'Gradient','prop.phase':'Phase',
 'prop.global.thresh':'Global Thresh.','prop.illuminant':'Illuminant','prop.primary':'Primary',
+'prop.diff.sensitivity':'Difference Sensitivity','prop.grad.diff.sens':'Gradient Diff',
+'prop.phase.diff.sens':'Phase Diff','prop.grad.bound.sens':'Gradient Boundary',
+'prop.phase.bound.sens':'Phase Boundary','prop.structural.sensitivity':'Structural Sensitivity',
+'prop.structural.sens':'Structural',
 'prop.test.illuminants':'Test Illuminants','prop.rpt.color':'Report: Color Sections',
 'prop.rpt.pattern':'Report: Pattern Sections','prop.methods':'Methods','prop.report':'Report',
 'rpt.color.spaces':'Color Spaces','rpt.rgb':'RGB Values','rpt.lab':'Lab* Values',
 'rpt.xyz':'XYZ Values','rpt.cmyk':'CMYK Values','rpt.diff':'Diff Metrics',
 'rpt.stats':'Statistics','rpt.detailed.lab':'Detailed Lab','rpt.visualizations':'Visualizations',
 'rpt.spectral':'Spectral Proxy','rpt.histograms':'RGB Histograms','rpt.visual.diff':'Visual Diff','rpt.illuminant':'Illuminant Analysis',
+'rpt.exec.summary':'Executive Overview','rpt.visual.compare.section':'Visual Comparison',
 'rpt.recommendations':'Recommendations','rpt.ssim':'Structural SSIM','rpt.gradient':'Gradient Similarity',
 'rpt.phase':'Phase Correlation','rpt.structural':'Structural Difference','rpt.fourier':'Fourier Domain Analysis',
 'rpt.glcm':'GLCM Texture Analysis',
 'rpt.grad.bound':'Gradient Boundary','rpt.phase.bound':'Phase Boundary',
+'prop.boundary.sensitivity':'Boundary Detection Sensitivity','prop.gradient.sens':'Gradient Sensitivity','prop.phase.sens':'Phase Sensitivity',
 'rpt.summary':'Summary','rpt.conclusion':'Conclusion','rpt.pattern.rec':'Recommendations',
 'btab.console':'Console','btab.results':'Results','btab.clear':'Clear',
 'results.empty':'Run an analysis to see results here.','sb.ready':'Ready',
@@ -78,6 +89,18 @@ var T={en:{
 'about.title':'About SpectraMatch','ds.title':'Technical Documentation',
 'ds.desc':'The complete technical documentation is available in PDF format.',
 'ds.available':'Available in English and Turkish',
+'cam.import.computer':'Import from Computer','cam.import.camera':'Import from Camera',
+'cam.studio.title':'Camera Capture Studio','cam.select.camera':'Select Camera',
+'cam.no.cameras':'No cameras detected','cam.requesting':'Requesting camera access...',
+'cam.permission.denied':'Camera permission denied. Please allow access in settings.',
+'cam.not.supported':'Camera is not supported in this environment.','cam.capture':'Capture',
+'cam.retake':'Retake','cam.use.image':'Use Image','cam.cancel':'Cancel','cam.close':'Close',
+'cam.rotate.left':'Rotate Left','cam.rotate.right':'Rotate Right','cam.flip.h':'Flip Horizontal',
+'cam.brightness':'Brightness','cam.contrast':'Contrast','cam.mirror':'Mirror',
+'cam.captured':'Image captured successfully','cam.assigned.ref':'Captured image set as Reference',
+'cam.assigned.sample':'Captured image set as Sample',
+'cam.file.build.error':'Could not build captured image file.',
+'cam.access.error':'Camera access error','cam.stream.error':'Camera stream error',
 'fb.title':'Send Feedback','fb.note':'All fields are optional. You can submit feedback anonymously.',
 'fb.name':'Name','fb.email':'Email','fb.type':'Feedback Type','fb.message':'Message',
 'fb.type.note':'Note','fb.type.suggestion':'Suggestion','fb.type.complaint':'Complaint',
@@ -105,14 +128,14 @@ var T={en:{
 'region.click.hint':'Click on image to place region center','region.outside':'Point is outside the selected region',
 'updates.current':'You are up to date!',
 'rn.item1':'Full Turkish language support for all UI elements','rn.item2':'Complete toolbar with all analysis and help options','rn.item3':'Freehand (Pen) region selection tool','rn.item4':'Ready-to-Test built-in sample images','rn.item5':'Session persistence and state restoration','rn.item6':'Native Save-As dialog for PDF reports','rn.item7':'Manual and random sampling point selection','rn.item8':'GLCM texture and Fourier frequency analysis','rn.item9':'Comprehensive PDF reports with visualizations','rn.item10':'Panel resize and layout customization',
-'tb.title.open.ref':'Open Reference Image (Ctrl+O)','tb.title.open.sample':'Open Sample Image (Ctrl+Shift+O)','tb.title.run':'Run Analysis (F5)','tb.title.delete':'Delete Images (Ctrl+D)','tb.title.full.image':'Process entire image','tb.title.single.mode':'Single image analysis mode','tb.title.ready.test':'Ready-to-Test Images','tb.title.datasheet':'Technical Datasheet','tb.title.feedback':'Send Feedback','tb.title.thesis.test':'Test for Thesis','tb.title.reset':'Reset to Default','tb.title.lang.switch':'Switch language','tb.title.theme':'Toggle theme','tb.title.hide.panel':'Hide panel','tb.title.clear.console':'Clear console',
+'tb.title.open.ref':'Open Reference Image (Ctrl+O)','tb.title.open.sample':'Open Sample Image (Ctrl+Shift+O)','tb.title.run':'Run Analysis (F5)','tb.title.delete':'Delete Images (Ctrl+D)','tb.title.full.image':'Process entire image','tb.title.single.mode':'Single image analysis mode','tb.title.ready.test':'Ready-to-Test Images','tb.title.datasheet':'Technical Datasheet','tb.title.feedback':'Send Feedback','tb.title.thesis.test':'Test for Thesis','tb.title.batch.thesis.test':'Run 100-Sample Batch Test','tb.title.reset':'Reset to Default','tb.title.lang.switch':'Switch language','tb.title.theme':'Toggle theme','tb.title.hide.panel':'Hide panel','tb.title.clear.console':'Clear console',
 'desktop.alignment.mode':'Alignment Mode','desktop.alignment.studio':'SPACTRA Studio','desktop.open.studio':'Open Studio',
 'thesis.delete.title':'Delete Thesis Database','thesis.delete.msg':'Are you sure you want to delete the entire thesis test database?','thesis.delete.confirm':'Confirm','thesis.delete.success':'Thesis database deleted successfully','thesis.delete.error':'Failed to delete thesis database',
 'rpt.report.summary':'Report Summary','rpt.color.analysis':'Color Analysis Details','rpt.pattern.analysis':'Pattern Analysis Details',
 'rpt.texture.frequency':'Texture & Frequency Analysis','rpt.single.image.analysis':'Single Image Analysis',
 'rpt.color.scoring.label':'Color Scoring','rpt.pattern.scoring.label':'Pattern Scoring',
-'rpt.csi.label':'CSI (Color Similarity)','rpt.mean.de2000':'Mean \u0394E 2000','rpt.report.size.label':'Report Size',
-'rpt.deltaep2000.note':'DeltaEP2000% is a percentage score derived from \u0394E 2000: Score\u00a0=\u00a0max(0,\u00a0min(100,\u00a0100\u00a0\u2212\u00a0mean(\u0394E\u2082\u2080\u2080\u2080)\u00a0\u00d7\u00a010)). Unlike raw \u0394E 2000 (absolute perceptual distance with no upper bound), DeltaEP2000% maps it to a 0\u201390 scale for scoring purposes only.',
+'rpt.csi.label':'CSI (Full-image \u0394E2000)','rpt.mean.de2000':'Mean \u0394E 2000','rpt.report.size.label':'Report Size',
+'rpt.deltaep2000.note':'ΔE₀₀ is reported as the raw color-difference value. It is not converted to a percentage score; lower values indicate closer color agreement.',
 'rpt.structural.change':'Structural Change','rpt.color.comparison':'Color Comparison',
 'rpt.reference':'Reference','rpt.sample':'Sample','rpt.regional.color.metrics':'Regional Color Metrics',
 'rpt.de.summary.stats':'\u0394E Summary Statistics','rpt.illuminant.analysis':'Illuminant Analysis',
@@ -120,7 +143,7 @@ var T={en:{
 'rpt.similarity.score':'Similarity Score','rpt.change.percentage':'Change Percentage','rpt.verdict':'Verdict',
 'rpt.difference.maps':'Difference Maps','rpt.boundary.detection':'Boundary Detection','rpt.structural.analysis':'Structural Analysis',
 'rpt.mode.label':'Mode','rpt.single.image.mode':'Single Image Analysis',
-'rpt.mean.de00':'Mean \u0394E00','rpt.method':'Method','rpt.status':'Status','rpt.composite':'Composite',
+'rpt.mean.de00':'Mean ΔE₀₀','rpt.method':'Method','rpt.status':'Status','rpt.composite':'Composite',
 'rpt.structural.label':'Structural','rpt.position':'Position','rpt.ref.lab':'Ref L*a*b*','rpt.sam.lab':'Sam L*a*b*',
 'rpt.metric':'Metric','rpt.average':'Average','rpt.std.dev':'Std Dev','rpt.min':'Min','rpt.max':'Max',
 'rpt.de.heatmap':'\u0394E Heatmap','rpt.de.heatmap.caption':'Pixel-level color difference heatmap between reference and sample.',
@@ -157,6 +180,13 @@ var T={en:{
 'thesis.rtt.loading':'Loading test images into workspace...',
 'thesis.rtt.autoloaded':'Ready-to-Test Pair 1 loaded.',
 'thesis.rtt.starting':'Images loaded — starting thesis test...',
+'loading.batch.title':'Running 100-Sample Batch Test',
+'loading.batch.starting':'Starting batch processor...',
+'loading.batch.done':'Batch test complete',
+'loading.batch.failed':'Batch test failed',
+'batch.complete.title':'Batch Thesis Test Complete',
+'batch.complete.msg':'JSON and heatmap PDF saved successfully.',
+'batch.progress.label':'Progress',
 'alignment.no.images.title':'Images Required',
 'alignment.no.images.msg':'Please load both a reference and sample image before opening SPACTRA Studio.',
 'tb.align.label':'Align:',
@@ -184,24 +214,35 @@ var T={en:{
 'viewer.click.ref':'Referans yüklemek için tıklayın','viewer.click.sample':'Örnek yüklemek için tıklayın',
 'prop.general':'Genel','prop.operator':'Operatör','prop.timezone':'Saat Dilimi',
 'prop.report.lang':'Rapor Dili','prop.color.unit':'Renk Birimi','prop.pass.thresh':'Geçiş Eşiği',
-'prop.cond.thresh':'Koşullu','prop.global.accept':'Genel Kabul','prop.csi.good':'RSE İyi',
-'prop.csi.warn':'RSE Uyarı','prop.sampling.count':'Örnekleme Sayısı',
+'prop.cond.thresh':'Koşullu','prop.global.accept':'Genel Kabul','prop.csi.good':'CSI Geçiş',
+'prop.csi.warn':'CSI Koşullu','prop.sampling.count':'Örnekleme Sayısı',
 'prop.lab.thresh.dl':'ΔL* Eşik Değeri','prop.lab.thresh.da':'Δa* Eşik Değeri','prop.lab.thresh.db':'Δb* Eşik Değeri','prop.lab.thresh.mag':'Büyüklük Eşik Değeri',
 'prop.sampling':'Örnekleme Yapılandırması','prop.sampling.mode':'Mod','prop.points.count':'Noktalar',
 'prop.manual.pts':'Manuel','prop.random.pts':'Rastgele',
 'prop.select.points':'Noktaları Seç','prop.complete.random':'Rastgele Tamamla',
+'prop.coord.entry':'Koordinat ile Nokta Ekle','prop.coord.x':'X','prop.coord.y':'Y',
+'prop.coord.add':'Ekle','prop.coord.points':'Girilen Noktalar','prop.coord.clear':'Tumunu Temizle',
+'prop.coord.none':'Henuz koordinat noktasi eklenmedi.','prop.coord.invalid':'Gecersiz koordinatlar.',
+'prop.coord.duplicate':'Nokta zaten mevcut.','prop.coord.outside':'Nokta secilen bolgenin disinda.',
+'prop.coord.added':'Nokta eklendi','prop.coord.removed':'Nokta kaldirildi','prop.coord.image.required':'Once goruntu yukleyin.',
 'prop.scoring.basis':'Puanlama Temeli','prop.structural.match':'Yapısal','prop.pattern.unit':'Desen Birimi','prop.gradient':'Gradyan','prop.phase':'Faz',
 'prop.global.thresh':'Genel Eşik','prop.illuminant':'Aydınlatma','prop.primary':'Birincil',
+'prop.diff.sensitivity':'Fark Hassasiyeti','prop.grad.diff.sens':'Gradyan Fark',
+'prop.phase.diff.sens':'Faz Fark','prop.grad.bound.sens':'Gradyan Siniri',
+'prop.phase.bound.sens':'Faz Siniri','prop.structural.sensitivity':'Yapisal Hassasiyet',
+'prop.structural.sens':'Yapisal',
 'prop.test.illuminants':'Test Aydınlatmaları','prop.rpt.color':'Rapor: Renk Bölümleri',
 'prop.rpt.pattern':'Rapor: Desen Bölümleri','prop.methods':'Yöntemler','prop.report':'Rapor',
 'rpt.color.spaces':'Renk Uzayları','rpt.rgb':'RGB Değerleri','rpt.lab':'Lab* Değerleri',
 'rpt.xyz':'XYZ Değerleri','rpt.cmyk':'CMYK Değerleri','rpt.diff':'Fark Metrikleri',
 'rpt.stats':'İstatistikler','rpt.detailed.lab':'Detaylı Lab','rpt.visualizations':'Görselleştirmeler',
 'rpt.spectral':'Spektral Vekil','rpt.histograms':'RGB Histogramları','rpt.visual.diff':'Görsel Fark','rpt.illuminant':'Aydınlatma Analizi',
+'rpt.exec.summary':'Yonetici Ozeti','rpt.visual.compare.section':'Gorsel Karsilastirma',
 'rpt.recommendations':'Öneriler','rpt.ssim':'Yapısal SSIM','rpt.gradient':'Gradyan Benzerliği',
 'rpt.phase':'Faz Korelasyonu','rpt.structural':'Yapısal Fark','rpt.fourier':'Fourier Alan Analizi',
 'rpt.glcm':'GLCM Doku Analizi',
 'rpt.grad.bound':'Gradyan Sınırı','rpt.phase.bound':'Faz Sınırı',
+'prop.boundary.sensitivity':'Sınır Tespit Hassasiyeti','prop.gradient.sens':'Gradyan Hassasiyeti','prop.phase.sens':'Faz Hassasiyeti',
 'rpt.summary':'Özet','rpt.conclusion':'Sonuç','rpt.pattern.rec':'Öneriler',
 'btab.console':'Konsol','btab.results':'Sonuçlar','btab.clear':'Temizle',
 'results.empty':'Sonuçları görmek için bir analiz çalıştırın.','sb.ready':'Hazır',
@@ -249,14 +290,14 @@ var T={en:{
 'region.click.hint':'Bölge merkezini yerleştirmek için görüntüye tıklayın','region.outside':'Nokta seçili bölgenin dışında',
 'updates.current':'Güncelsiniz!',
 'rn.item1':'Tüm arayüz öğeleri için tam Türkçe dil desteği','rn.item2':'Tüm analiz ve yardım seçenekleriyle eksiksiz araç çubuğu','rn.item3':'Serbest çizim (Kalem) bölge seçim aracı','rn.item4':'Teste hazır yerleşik örnek görüntüler','rn.item5':'Oturum kalıcılığı ve durum geri yükleme','rn.item6':'PDF raporları için yerel Farklı Kaydet diyaloğu','rn.item7':'Manuel ve rastgele örnekleme noktası seçimi','rn.item8':'GLCM doku ve Fourier frekans analizi','rn.item9':'Görselleştirmelerle kapsamlı PDF raporları','rn.item10':'Panel yeniden boyutlandırma ve düzen özelleştirme',
-'tb.title.open.ref':'Referans Görüntü Aç (Ctrl+O)','tb.title.open.sample':'Örnek Görüntü Aç (Ctrl+Shift+O)','tb.title.run':'Analizi Çalıştır (F5)','tb.title.delete':'Görüntüleri Sil (Ctrl+D)','tb.title.full.image':'Tüm görüntüyü işle','tb.title.single.mode':'Tek görüntü analiz modu','tb.title.ready.test':'Teste Hazır Görüntüler','tb.title.datasheet':'Teknik Veri Sayfası','tb.title.feedback':'Geri Bildirim Gönder','tb.title.thesis.test':'Tez Testi','tb.title.reset':'Varsayılana Sıfırla','tb.title.lang.switch':'Dil değiştir','tb.title.theme':'Tema değiştir','tb.title.hide.panel':'Paneli gizle','tb.title.clear.console':'Konsolu temizle',
+'tb.title.open.ref':'Referans Görüntü Aç (Ctrl+O)','tb.title.open.sample':'Örnek Görüntü Aç (Ctrl+Shift+O)','tb.title.run':'Analizi Çalıştır (F5)','tb.title.delete':'Görüntüleri Sil (Ctrl+D)','tb.title.full.image':'Tüm görüntüyü işle','tb.title.single.mode':'Tek görüntü analiz modu','tb.title.ready.test':'Teste Hazır Görüntüler','tb.title.datasheet':'Teknik Veri Sayfası','tb.title.feedback':'Geri Bildirim Gönder','tb.title.thesis.test':'Tez Testi','tb.title.batch.thesis.test':'100 Numunelik Toplu Test','tb.title.reset':'Varsayılana Sıfırla','tb.title.lang.switch':'Dil değiştir','tb.title.theme':'Tema değiştir','tb.title.hide.panel':'Paneli gizle','tb.title.clear.console':'Konsolu temizle',
 'desktop.alignment.mode':'Hizalama Modu','desktop.alignment.studio':'SPACTRA Studio','desktop.open.studio':'Stüdyoyu Aç',
 'thesis.delete.title':'Tez Veritabanını Sil','thesis.delete.msg':'Tüm tez test veritabanını silmek istediğinizden emin misiniz?','thesis.delete.confirm':'Onayla','thesis.delete.success':'Tez veritabanı başarıyla silindi','thesis.delete.error':'Tez veritabanı silinemedi',
 'rpt.report.summary':'Rapor Özeti','rpt.color.analysis':'Renk Analizi Detayları','rpt.pattern.analysis':'Desen Analizi Detayları',
 'rpt.texture.frequency':'Doku ve Frekans Analizi','rpt.single.image.analysis':'Tek Görüntü Analizi',
 'rpt.color.scoring.label':'Renk Puanlama','rpt.pattern.scoring.label':'Desen Puanlama',
-'rpt.csi.label':'RSE (Renk Benzerliği)','rpt.mean.de2000':'Ortalama \u0394E 2000','rpt.report.size.label':'Rapor Boyutu',
-'rpt.deltaep2000.note':'DeltaEP2000%, \u0394E\u00a02000\'den t\u00fcretilen bir y\u00fczde puan\u0131d\u0131r: Puan\u00a0=\u00a0max(0,\u00a0min(100,\u00a0100\u00a0\u2212\u00a0ortalama(\u0394E\u2082\u2080\u2080\u2080)\u00a0\u00d7\u00a010)). Ham \u0394E\u00a02000\'den (s\u0131n\u0131rs\u0131z mutlak alg\u0131sal mesafe) farkl\u0131 olarak, DeltaEP2000% yaln\u0131zca puanlama i\u00e7in 0\u2013100 \u00f6l\u00e7e\u011fine d\u00f6n\u00fc\u015ft\u00fcr\u00fcr.',
+'rpt.csi.label':'CSI (Tam g\u00f6r\u00fcnt\u00fc \u0394E2000)','rpt.mean.de2000':'Ortalama \u0394E 2000','rpt.report.size.label':'Rapor Boyutu',
+'rpt.deltaep2000.note':'ΔE₀₀, ham renk farkı değeri olarak raporlanır. Yüzdelik bir puana dönüştürülmez; daha düşük değerler daha yakın renk uyumunu gösterir.',
 'rpt.structural.change':'Yapısal Değişim','rpt.color.comparison':'Renk Karşılaştırması',
 'rpt.reference':'Referans','rpt.sample':'Numune','rpt.regional.color.metrics':'Bölgesel Renk Metrikleri',
 'rpt.de.summary.stats':'\u0394E Özet İstatistikleri','rpt.illuminant.analysis':'Aydınlatıcı Analizi',
@@ -264,7 +305,7 @@ var T={en:{
 'rpt.similarity.score':'Benzerlik Puanı','rpt.change.percentage':'Değişim Yüzdesi','rpt.verdict':'Karar',
 'rpt.difference.maps':'Fark Haritaları','rpt.boundary.detection':'Sınır Tespiti','rpt.structural.analysis':'Yapısal Analiz',
 'rpt.mode.label':'Mod','rpt.single.image.mode':'Tek Görüntü Analizi',
-'rpt.mean.de00':'Ortalama \u0394E00','rpt.method':'Y\u00f6ntem','rpt.status':'Durum','rpt.composite':'Bile\u015fik',
+'rpt.mean.de00':'Ortalama ΔE₀₀','rpt.method':'Yöntem','rpt.status':'Durum','rpt.composite':'Bileşik',
 'rpt.structural.label':'Yap\u0131sal','rpt.position':'Konum','rpt.ref.lab':'Ref L*a*b*','rpt.sam.lab':'\u00d6rn L*a*b*',
 'rpt.metric':'Metrik','rpt.average':'Ortalama','rpt.std.dev':'Std Sapma','rpt.min':'Min','rpt.max':'Maks',
 'rpt.de.heatmap':'\u0394E Is\u0131 Haritas\u0131','rpt.de.heatmap.caption':'Referans ve numune aras\u0131ndaki piksel d\u00fczeyinde renk fark\u0131 \u0131s\u0131 haritas\u0131.',
@@ -301,25 +342,47 @@ var T={en:{
 'thesis.rtt.loading':'Test görüntüleri yükleniyor...',
 'thesis.rtt.autoloaded':'Teste Hazır Çift 1 yüklendi.',
 'thesis.rtt.starting':'Görüntüler yüklendi — tez testi başlatılıyor...',
+'loading.batch.title':'100 Numunelik Toplu Test Çalıştırılıyor',
+'loading.batch.starting':'Toplu işlem başlatılıyor...',
+'loading.batch.done':'Toplu test tamamlandı',
+'loading.batch.failed':'Toplu test başarısız oldu',
+'batch.complete.title':'Toplu Tez Testi Tamamlandı',
+'batch.complete.msg':'JSON ve ısı haritası PDF dosyası başarıyla kaydedildi.',
+'batch.progress.label':'İlerleme',
 'alignment.no.images.title':'Görüntü Gerekli',
 'alignment.no.images.msg':'SPACTRA Studio\'yu açmadan önce lütfen hem referans hem de örnek görüntü yükleyin.',
 'tb.align.label':'Hizala:',
 'tb.title.align.mode':'Hizalama Modu — ön işlem yöntemini seçin',
 'tb.title.open.studio':'SPACTRA Studio\'yu Aç',
 'tb.title.sampling.count':'Örnekleme Sayısı — renk ölçüm noktası sayısı'
+,'cam.import.computer':'Bilgisayardan \u0130\u00e7e Aktar','cam.import.camera':'Kameradan \u0130\u00e7e Aktar',
+'cam.studio.title':'Kamera Yakalama St\u00fcdyosu','cam.select.camera':'Kamera Se\u00e7in',
+'cam.no.cameras':'Kamera alg\u0131lanmad\u0131','cam.requesting':'Kamera eri\u015fimi isteniyor...',
+'cam.permission.denied':'Kamera izni reddedildi. L\u00fctfen ayarlardan eri\u015fime izin verin.',
+'cam.not.supported':'Bu ortamda kamera desteklenmiyor.','cam.capture':'Yakala',
+'cam.retake':'Yeniden \u00c7ek','cam.use.image':'G\u00f6r\u00fcnt\u00fcy\u00fc Kullan','cam.cancel':'\u0130ptal','cam.close':'Kapat',
+'cam.rotate.left':'Sola D\u00f6nd\u00fcr','cam.rotate.right':'Sa\u011fa D\u00f6nd\u00fcr','cam.flip.h':'Yatay \u00c7evir',
+'cam.brightness':'Parlakl\u0131k','cam.contrast':'Kontrast','cam.mirror':'Ayna',
+'cam.captured':'G\u00f6r\u00fcnt\u00fc ba\u015far\u0131yla yakaland\u0131','cam.assigned.ref':'Yakalanan g\u00f6r\u00fcnt\u00fc Referans olarak ayarland\u0131',
+'cam.assigned.sample':'Yakalanan g\u00f6r\u00fcnt\u00fc Numune olarak ayarland\u0131',
+'cam.file.build.error':'Yakalanan g\u00f6r\u00fcnt\u00fc dosyas\u0131 olu\u015fturulamad\u0131.',
+'cam.access.error':'Kamera eri\u015fim hatas\u0131','cam.stream.error':'Kamera ak\u0131\u015f hatas\u0131'
 }};
 
 function t(k){return(T[State.lang]||T.en)[k]||(T.en)[k]||k;}
+function formatColorMethodLabel(label){return label==='DELTAE2000'?'ΔE₀₀':label;}
 function translatePage(){
-    document.querySelectorAll('[data-i18n]').forEach(function(el){
-        var k=el.getAttribute('data-i18n'),v=t(k);
-        el.textContent=v;
+    document.querySelectorAll('[data-i18n], [data-i18n-html]').forEach(function(el){
+        var k=el.getAttribute('data-i18n')||el.getAttribute('data-i18n-html'),v=t(k);
+        if(el.hasAttribute('data-i18n-html')) el.innerHTML=v;
+        else el.textContent=v;
     });
     /* Translate title (tooltip) attributes — use data-tooltip for CSS tooltips, remove native title */
     document.querySelectorAll('[data-i18n-title]').forEach(function(el){
         var k=el.getAttribute('data-i18n-title'),v=t(k);
         if(v&&v!==k){
             el.setAttribute('data-tooltip',v);
+            el.setAttribute('aria-label',v);
             el.removeAttribute('title');
         }
     });
@@ -331,6 +394,7 @@ function translatePage(){
     if($('aboutFeatText3'))$('aboutFeatText3').textContent=t('about.feat3');
     if($('aboutFeatText4'))$('aboutFeatText4').textContent=t('about.feat4');
     if($('scCloseDialogs'))$('scCloseDialogs').textContent=t('sc.close.dialogs');
+    refreshDesktopCameraTranslations();
 }
 
 /* ═══ Console ═══ */
@@ -355,7 +419,7 @@ document.addEventListener('DOMContentLoaded',function(){
     log(t('sb.ready'),'');
     initMenuBar();initToolbar();initFileInputs();initReadyToTest();initPropertySections();
     initBottomTabs();initKeyboard();initTheme();initLang();
-    initDialogs();initSampling();initPointSelector();
+    initDialogs();initSampling();initPointSelector();initDesktopCameraStudio();
     initRegionOverlays();initRegionDrag();initPanelControls();initPanelResize();
     /* Restore persisted state (after all UI is initialized) */
     var restored=restoreState();
@@ -496,13 +560,14 @@ function togglePanel(id){
 
 /* ═══ Toolbar ═══ */
 function initToolbar(){
-    $('tbOpenRef').addEventListener('click',function(){$('refFileInput').click();});
-    $('tbOpenSample').addEventListener('click',function(){$('sampleFileInput').click();});
+    bindToolbarImportDropdown('tbOpenRef','tbRefDropdown','ref');
+    bindToolbarImportDropdown('tbOpenSample','tbSampleDropdown','sample');
     $('tbRun').addEventListener('click',runAnalysis);
     $('tbDelete').addEventListener('click',confirmDelete);
     $('tbDatasheet').addEventListener('click',function(){$('datasheetDialog').style.display='';});
     $('tbFeedback').addEventListener('click',function(){$('feedbackDialog').style.display='';});
     $('tbThesisTest').addEventListener('click',runThesisTest);
+    $('tbBatchThesisTest').addEventListener('click',runBatchThesisTest);
     $('tbThesisTest').addEventListener('contextmenu',function(e){
         e.preventDefault();
         confirmDeleteThesisDatabase();
@@ -524,6 +589,7 @@ function initToolbar(){
     $('tbFullImage').addEventListener('change',function(){
         State.fullImage=this.checked;
         $('tbRegionControls').classList.toggle('hidden',State.fullImage);
+        updateRightToolsCollapsed();
         log(t('log.region')+': '+(State.fullImage?t('tb.full.image'):t('sb.custom')),'info');
         updateRegionOverlays();updateUI();scheduleSave();
     });
@@ -555,13 +621,35 @@ function initToolbar(){
     sync('tbHeightSlider','tbHeightValue');
     $('tbRegionControls').classList.toggle('hidden',State.fullImage);
 
+    /* ── Right toolbar collapse: when Full Image is OFF, group right-side
+         tools (Ready-to-Test, Datasheet, Feedback, Thesis Test, Reset) into
+         a clean dropdown anchored on a "more" button to keep the toolbar
+         tidy. When Full Image is ON, restore the inline layout. ── */
+    var moreBtn=$('tbMoreBtn');
+    var rightTools=$('tbRightTools');
+    if(moreBtn&&rightTools){
+        moreBtn.addEventListener('click',function(e){
+            e.stopPropagation();
+            rightTools.classList.toggle('show');
+        });
+        document.addEventListener('click',function(e){
+            if(!rightTools.contains(e.target))rightTools.classList.remove('show');
+        });
+        document.addEventListener('keydown',function(e){
+            if(e.key==='Escape')rightTools.classList.remove('show');
+        });
+    }
+    updateRightToolsCollapsed();
+
     /* ── Toolbar ⇔ Properties bidirectional sync: Alignment Mode ── */
     $('tbAlignmentMode').addEventListener('change',function(){
         if($('propAlignmentMode'))$('propAlignmentMode').value=this.value;
+        applyAlignmentToWorkspace(this.value);
         scheduleSave();
     });
     if($('propAlignmentMode'))$('propAlignmentMode').addEventListener('change',function(){
         $('tbAlignmentMode').value=this.value;
+        applyAlignmentToWorkspace(this.value);
     });
 
     /* ── Toolbar ⇔ Properties bidirectional sync: Sampling Count ── */
@@ -578,6 +666,44 @@ function initToolbar(){
     });
     if($('propRegionCount'))$('propRegionCount').addEventListener('change',function(){
         $('tbSamplingCount').value=this.value;
+    });
+    document.addEventListener('click',function(e){
+        if(!e.target.closest('.tb-dropdown-wrap'))closeToolbarImportDropdowns();
+    });
+    document.addEventListener('keydown',function(e){
+        if(e.key==='Escape')closeToolbarImportDropdowns();
+    });
+}
+
+function bindToolbarImportDropdown(buttonId,menuId,target){
+    var btn=$(buttonId),menu=$(menuId);
+    if(!btn||!menu)return;
+    btn.addEventListener('click',function(e){
+        e.preventDefault();
+        e.stopPropagation();
+        var isOpen=menu.classList.contains('show');
+        closeToolbarImportDropdowns(menuId);
+        menu.classList.toggle('show',!isOpen);
+    });
+    menu.querySelectorAll('.tb-dropdown-item').forEach(function(item){
+        item.addEventListener('click',function(e){
+            e.preventDefault();
+            e.stopPropagation();
+            closeToolbarImportDropdowns();
+            var action=this.getAttribute('data-action');
+            if(action===target+'-file'){
+                $(target==='ref'?'refFileInput':'sampleFileInput').click();
+                return;
+            }
+            if(action===target+'-camera')openDesktopCameraStudio(target);
+        });
+    });
+}
+
+function closeToolbarImportDropdowns(exceptId){
+    document.querySelectorAll('.tb-dropdown-menu.show').forEach(function(menu){
+        if(exceptId&&menu.id===exceptId)return;
+        menu.classList.remove('show');
     });
 }
 
@@ -629,8 +755,16 @@ function loadImage(which,file){
         var img=new Image();
         img.onload=function(){
             var w=img.naturalWidth,h=img.naturalHeight;
-            if(which==='ref'){State.refFile=file;State.refDataUrl=e.target.result;State.refW=w;State.refH=h;}
-            else{State.sampleFile=file;State.sampleDataUrl=e.target.result;State.sampleW=w;State.sampleH=h;}
+            if(which==='ref'){
+                State.refFile=file;State.refDataUrl=e.target.result;State.refW=w;State.refH=h;
+                /* Track the original — used to restore when alignment mode is reset to Direct */
+                State.refDataUrlOriginal=e.target.result;State.refWOriginal=w;State.refHOriginal=h;
+            } else {
+                State.sampleFile=file;State.sampleDataUrl=e.target.result;State.sampleW=w;State.sampleH=h;
+                State.sampleDataUrlOriginal=e.target.result;State.sampleWOriginal=w;State.sampleHOriginal=h;
+            }
+            /* Reset cached alignment so next mode change re-applies on fresh image */
+            _alignAutoApply.lastMode=null;
             showPreview(which,e.target.result,w,h,file.name);
             updateSliderMax();
             resetRegionCenter();
@@ -1149,6 +1283,7 @@ function initSampling(){
     $('propSamplingMode').addEventListener('change',function(){
         State.samplingMode=this.value;
     });
+    initCoordinateEntry();
 }
 
 function updateSamplingUI(){
@@ -1160,6 +1295,7 @@ function updateSamplingUI(){
     $('manualCountVal').textContent=m;$('randomCountVal').textContent=r;
     /* Keep dropdown in sync with actual state */
     $('propSamplingMode').value=State.samplingMode;
+    renderCoordPointsList();
 }
 
 function syncSamplingMode(){
@@ -1199,6 +1335,114 @@ function completeRandomly(){
     }
     State.samplingMode=m>0?'hybrid':'random';
     updateSamplingUI();log(t('log.generated.random')+': '+State.randomPoints.length,'info');
+    scheduleSave();
+}
+
+function initCoordinateEntry(){
+    var addBtn=$('btnCoordAdd');
+    var clearBtn=$('btnCoordClear');
+    var xInput=$('propCoordX');
+    var yInput=$('propCoordY');
+    if(!addBtn||!xInput||!yInput)return;
+
+    addBtn.addEventListener('click',function(e){
+        e.preventDefault();
+        addCoordPoint();
+    });
+    if(clearBtn){
+        clearBtn.addEventListener('click',function(e){
+            e.preventDefault();
+            State.manualPoints=[];
+            updateSamplingUI();
+            showCoordFeedback(t('prop.coord.removed'),'warn');
+            scheduleSave();
+        });
+    }
+    [xInput,yInput].forEach(function(input){
+        input.addEventListener('keydown',function(e){
+            if(e.key==='Enter'){
+                e.preventDefault();
+                addCoordPoint();
+            }
+        });
+    });
+}
+
+function showCoordFeedback(message, level){
+    var el=$('propCoordFeedback');
+    if(!el)return;
+    el.textContent=message||'';
+    el.className='prop-coord-feedback'+(level?' '+level:'');
+}
+
+function renderCoordPointsList(){
+    var list=$('propCoordList');
+    var clearBtn=$('btnCoordClear');
+    if(!list)return;
+    list.innerHTML='';
+    if(clearBtn)clearBtn.style.display=State.manualPoints.length?'':'none';
+    if(!State.manualPoints.length){
+        list.innerHTML='<span class="prop-coord-empty">'+t('prop.coord.none')+'</span>';
+        return;
+    }
+    State.manualPoints.forEach(function(point, index){
+        var row=document.createElement('div');
+        row.className='prop-coord-chip';
+        row.innerHTML='<span class="prop-coord-chip-meta"><span class="prop-coord-chip-index">'+(index+1)+'</span><span class="prop-coord-chip-value">('+point.x+', '+point.y+')</span></span><button type="button" class="prop-coord-chip-remove" data-index="'+index+'" aria-label="Remove point">&times;</button>';
+        var removeBtn=row.querySelector('.prop-coord-chip-remove');
+        removeBtn.addEventListener('click',function(){
+            var idx=parseInt(this.getAttribute('data-index'),10);
+            if(isNaN(idx))return;
+            State.manualPoints.splice(idx,1);
+            syncSamplingMode();
+            updateSamplingUI();
+            showCoordFeedback(t('prop.coord.removed'),'warn');
+            scheduleSave();
+        });
+        list.appendChild(row);
+    });
+}
+
+function addCoordPoint(){
+    var xInput=$('propCoordX');
+    var yInput=$('propCoordY');
+    if(!xInput||!yInput)return;
+    if(State.singleMode){
+        if(!State.sampleFile){showCoordFeedback(t('prop.coord.image.required'),'error');return;}
+    }else if(!State.refFile||!State.sampleFile){
+        showCoordFeedback(t('prop.coord.image.required'),'error');
+        return;
+    }
+
+    var px=parseInt(xInput.value,10);
+    var py=parseInt(yInput.value,10);
+    var imgW=State.singleMode?State.sampleW:(State.refW||State.sampleW);
+    var imgH=State.singleMode?State.sampleH:(State.refH||State.sampleH);
+    if(isNaN(px)||isNaN(py)||px<0||py<0||!imgW||!imgH||px>=imgW||py>=imgH){
+        showCoordFeedback(t('prop.coord.invalid'),'error');
+        return;
+    }
+    if(!isPointInRegion(px,py)){
+        showCoordFeedback(t('prop.coord.outside'),'error');
+        return;
+    }
+    if(State.manualPoints.some(function(point){return point.x===px&&point.y===py;})){
+        showCoordFeedback(t('prop.coord.duplicate'),'warn');
+        return;
+    }
+
+    var total=parseInt($('propPointsCount').value)||5;
+    if(State.manualPoints.length>=total)State.manualPoints.shift();
+    State.manualPoints.push({x:px,y:py});
+    var excess=(State.manualPoints.length+State.randomPoints.length)-total;
+    while(excess>0&&State.randomPoints.length>0){State.randomPoints.pop();excess--;}
+    State.samplingMode='manual';
+    $('propSamplingMode').value='manual';
+    xInput.value='';
+    yInput.value='';
+    updateSamplingUI();
+    drawPSCanvases();
+    showCoordFeedback(t('prop.coord.added'),'success');
     scheduleSave();
 }
 
@@ -1347,6 +1591,18 @@ function updatePSUI(){
     updateSamplingUI();
 }
 
+/* ═══ Right Toolbar Collapse Helper ═══
+   Toggles the .collapsed class on #tbRightTools so the right-side icons
+   (Ready-to-Test → Reset) become a single "more" dropdown when Full Image
+   mode is OFF (which expands the region controls and crowds the toolbar). */
+function updateRightToolsCollapsed(){
+    var rt=$('tbRightTools');if(!rt)return;
+    /* Collapse only when Full Image is OFF */
+    rt.classList.toggle('collapsed',!State.fullImage);
+    /* Always close the popover when the layout flips */
+    rt.classList.remove('show');
+}
+
 /* ═══ UI State ═══ */
 function updateUI(){
     var hasRef=!!State.refFile,hasSample=!!State.sampleFile;
@@ -1439,7 +1695,7 @@ function collectSettings(){
         color_scoring_method:val('propColorScoringMethod','delta_e'),
         color_threshold_pass:num('propColorPass',2.0),color_threshold_conditional:num('propColorCond',5.0),
         global_threshold_de:num('propColorGlobal',5.0),region_count:num('propRegionCount',5),
-        csi_good:num('propCsiGood',90.0),csi_warn:num('propCsiWarn',70.0),
+        csi_good:num('propCsiGood',2.0),csi_warn:num('propCsiWarn',5.0),
         primary_illuminant:val('propIlluminant','D65'),test_illuminants:ti,
         pattern_scoring_method:val('propPatternScoringMethod','all'),
         ssim_pass:num('propSsimPass',85.0),ssim_cond:num('propSsimCond',70.0),
@@ -1447,7 +1703,13 @@ function collectSettings(){
         phase_pass:num('propPhasePass',85.0),phase_cond:num('propPhaseCond',70.0),
         structural_pass:num('propStructuralPass',85.0),structural_cond:num('propStructuralCond',70.0),
         global_pattern_threshold:num('propPatternGlobal',75.0),
+        gradient_diff_sensitivity:num('propGradDiffSens',7),
+        phase_diff_sensitivity:num('propPhaseDiffSens',7),
+        gradient_boundary_sensitivity:num('propGradBoundSens',4),
+        phase_boundary_sensitivity:num('propPhaseBoundSens',8),
+        structural_sensitivity:num('propStructuralSens',10),
         section_color_spaces:chk('rptColorSpaces',true),section_rgb:chk('rptRgb',true),
+        section_exec_summary:chk('rptExecSummary',true),section_visual_comparison:chk('rptVisualCompare',true),
         section_lab:chk('rptLab',true),section_xyz:chk('rptXyz',true),section_cmyk:chk('rptCmyk',true),
         section_diff_metrics:chk('rptDiffMetrics',true),section_stats:chk('rptStats',true),
         section_detailed_lab:chk('rptDetailedLab',true),section_visualizations:chk('rptVisualizations',true),
@@ -1463,9 +1725,10 @@ function collectSettings(){
             'Gradient Similarity':{'pass':num('propGradPass',85.0),'conditional':num('propGradCond',70.0)},
             'Phase Correlation':{'pass':num('propPhasePass',85.0),'conditional':num('propPhaseCond',70.0)},
             'Structural Match':{'pass':num('propStructuralPass',85.0),'conditional':num('propStructuralCond',70.0)}},
-        csi_thresholds:{'good':num('propCsiGood',90.0),'warn':num('propCsiWarn',70.0)},
+        csi_thresholds:{'good':num('propCsiGood',2.0),'warn':num('propCsiWarn',5.0)},
         global_threshold:num('propPatternGlobal',75.0),
         sections:{'color_spaces':chk('rptColorSpaces',true),'rgb':chk('rptRgb',true),'lab':chk('rptLab',true),
+            'exec_summary':chk('rptExecSummary',true),'visual_comparison':chk('rptVisualCompare',true),
             'xyz':chk('rptXyz',true),'cmyk':chk('rptCmyk',true),'diff_metrics':chk('rptDiffMetrics',true),
             'stats':chk('rptStats',true),'detailed_lab':chk('rptDetailedLab',true),
             'visualizations':chk('rptVisualizations',true),'spectral':chk('rptSpectral',true),
@@ -1585,9 +1848,12 @@ function displayResults(result){
     /* ── Score Cards ── */
     if(!isSingle){
         html+='<div class="rpt-scores">';
-        var colorLabel=result.color_method_label?t('rpt.score.color')+' ('+result.color_method_label+')':t('rpt.score.color');
+        var colorLabel=result.color_method_label?t('rpt.score.color')+' ('+formatColorMethodLabel(result.color_method_label)+')':t('rpt.score.color');
         var patternLabel=result.pattern_method_label?t('rpt.score.pattern')+' ('+result.pattern_method_label+')':t('rpt.score.pattern');
-        html+=scoreCard(colorLabel,result.color_score,'color');
+        var colorScoreOptions=result.color_score_format==='raw_value'
+            ? {raw:true,displayValue:result.color_score,visualPct:result.color_score_visual_pct,status:result.color_status}
+            : null;
+        html+=scoreCard(colorLabel,result.color_score,'color',colorScoreOptions);
         html+=scoreCard(patternLabel,result.pattern_score,'pattern');
         html+=scoreCard(t('rpt.score.overall'),result.overall_score,'overall');
         html+='</div>';
@@ -1622,18 +1888,19 @@ function displayResults(result){
         html+='<div class="rpt-summary-card">';
         html+='<div class="rpt-summary-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg></div>';
         html+='<div class="rpt-summary-body"><div class="rpt-summary-title">'+t('rpt.color.scoring.label')+'</div>';
-        html+='<div class="rpt-summary-val">'+(result.color_method_label||'DeltaEP2000%')+'</div></div></div>';
+        html+='<div class="rpt-summary-val">'+formatColorMethodLabel(result.color_method_label||'DELTAE2000')+'</div></div></div>';
         html+='<div class="rpt-summary-card">';
         html+='<div class="rpt-summary-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></div>';
         html+='<div class="rpt-summary-body"><div class="rpt-summary-title">'+t('rpt.pattern.scoring.label')+'</div>';
         html+='<div class="rpt-summary-val">'+(result.pattern_method_label||'All (Average)')+'</div></div></div>';
         /* CSI */
         if(result.csi_value!==undefined){
-            var csiCls=result.csi_value>=90?'good':(result.csi_value>=70?'warn':'bad');
+            var csiStatus=(result.csi_details&&result.csi_details.status)||'';
+            var csiCls=csiStatus==='PASS'?'good':(csiStatus==='CONDITIONAL'?'warn':'bad');
             html+='<div class="rpt-summary-card">';
             html+='<div class="rpt-summary-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>';
             html+='<div class="rpt-summary-body"><div class="rpt-summary-title">'+t('rpt.csi.label')+'</div>';
-            html+='<div class="rpt-summary-val '+csiCls+'">'+result.csi_value.toFixed(1)+'%</div></div></div>';
+            html+='<div class="rpt-summary-val '+csiCls+'">'+result.csi_value.toFixed(4)+'</div></div></div>';
         }
         /* Mean ΔE */
         if(result.mean_de00!==undefined){
@@ -1696,14 +1963,15 @@ function displayResults(result){
             var cStCls=cSt==='PASS'?'good':(cSt==='FAIL'?'bad':'warn');
             html+='<div class="rpt-kpi"><span class="rpt-kpi-label">'+t('rpt.mean.de00')+'</span><span class="rpt-kpi-value">'+mde.toFixed(4)+'</span></div>';
             if(result.csi_value!==undefined){
-                var csiCls2=result.csi_value>=90?'good':(result.csi_value>=70?'warn':'bad');
-                html+='<div class="rpt-kpi"><span class="rpt-kpi-label">CSI</span><span class="rpt-kpi-value '+csiCls2+'">'+result.csi_value.toFixed(1)+'%</span></div>';
+                var csiStatus2=(result.csi_details&&result.csi_details.status)||'';
+                var csiCls2=csiStatus2==='PASS'?'good':(csiStatus2==='CONDITIONAL'?'warn':'bad');
+                html+='<div class="rpt-kpi"><span class="rpt-kpi-label">CSI</span><span class="rpt-kpi-value '+csiCls2+'">'+result.csi_value.toFixed(4)+'</span></div>';
             }
-            html+='<div class="rpt-kpi"><span class="rpt-kpi-label">'+t('rpt.method')+'</span><span class="rpt-kpi-value">'+(result.color_method_label||'DeltaEP2000%')+'</span></div>';
+            html+='<div class="rpt-kpi"><span class="rpt-kpi-label">'+t('rpt.method')+'</span><span class="rpt-kpi-value">'+formatColorMethodLabel(result.color_method_label||'DELTAE2000')+'</span></div>';
             html+='<div class="rpt-kpi"><span class="rpt-kpi-label">'+t('rpt.status')+'</span><span class="rpt-status-badge '+cStCls+'">'+cSt+'</span></div>';
         }
         html+='</div>';
-        if(result.color_method_label==='DeltaEP2000%'){
+        if(result.color_method_label==='DELTAE2000'){
             html+='<div class="rpt-info-note">ℹ️ '+t('rpt.deltaep2000.note')+'</div>';
         }
 
@@ -1940,9 +2208,17 @@ function iconSvg(type){
     return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>';
 }
 
-function scoreCard(label,score,type){
-    var s=(score||0).toFixed(1),pct=Math.min(100,Math.max(0,score||0));
-    var cls=pct>=75?'good':(pct>=50?'warn':'bad');
+function scoreCard(label,score,type,options){
+    options=options||{};
+    var displayValue=Number(options.displayValue!==undefined?options.displayValue:(score||0));
+    var pct=Number(options.visualPct!==undefined?options.visualPct:(score||0));
+    var decimals=options.raw?2:1;
+    if(!isFinite(displayValue))displayValue=0;
+    if(!isFinite(pct))pct=0;
+    pct=Math.min(100,Math.max(0,pct));
+    var status=String(options.status||'').toUpperCase();
+    var cls=status==='PASS'?'good':(status==='CONDITIONAL'?'warn':(status==='FAIL'?'bad':(pct>=75?'good':(pct>=50?'warn':'bad'))));
+    var s=displayValue.toFixed(decimals);
     return '<div class="rpt-score-card '+type+'"><div class="rpt-score-label">'+label+'</div><div class="rpt-score-value '+cls+'">'+s+'</div><div class="rpt-score-bar"><div class="rpt-score-fill '+cls+'" style="width:'+pct+'%"></div></div></div>';
 }
 
@@ -1983,10 +2259,15 @@ function resetSettings(){
     $('tbShape').value='circle';$('tbSizeValue').value='100';$('tbSizeSlider').value='100';
     $('tbHeightValue').value='100';$('tbHeightSlider').value='100';$('tbRectGroup').style.display='none';
     $('propColorPass').value='2.0';$('propColorCond').value='5.0';$('propColorGlobal').value='5.0';
-    $('propCsiGood').value='90.0';$('propCsiWarn').value='70.0';$('propRegionCount').value='5';
+    $('propCsiGood').value='2.0';$('propCsiWarn').value='5.0';$('propRegionCount').value='5';
     $('propPointsCount').value='5';$('propSamplingMode').value='random';
     $('propSsimPass').value='85.0';$('propSsimCond').value='70.0';$('propGradPass').value='85.0';$('propGradCond').value='70.0';
-    $('propPhasePass').value='85.0';$('propPhaseCond').value='70.0';$('propPatternGlobal').value='75.0';
+    $('propPhasePass').value='85.0';$('propPhaseCond').value='70.0';$('propStructuralPass').value='85.0';$('propStructuralCond').value='70.0';$('propPatternGlobal').value='75.0';
+    if($('propGradDiffSens')){$('propGradDiffSens').value='7';if($('propGradDiffSensVal'))$('propGradDiffSensVal').textContent='7';}
+    if($('propPhaseDiffSens')){$('propPhaseDiffSens').value='7';if($('propPhaseDiffSensVal'))$('propPhaseDiffSensVal').textContent='7';}
+    if($('propGradBoundSens')){$('propGradBoundSens').value='4';if($('propGradBoundSensVal'))$('propGradBoundSensVal').textContent='4';}
+    if($('propPhaseBoundSens')){$('propPhaseBoundSens').value='8';if($('propPhaseBoundSensVal'))$('propPhaseBoundSensVal').textContent='8';}
+    if($('propStructuralSens')){$('propStructuralSens').value='10';if($('propStructuralSensVal'))$('propStructuralSensVal').textContent='10';}
     $('propLabDL').value='1.0';$('propLabDA').value='1.0';$('propLabDB').value='1.0';$('propLabMag').value='2.0';
     $('propIlluminant').value='D65';
     document.querySelectorAll('.prop-check-list input[type="checkbox"],.prop-check-grid input[type="checkbox"]').forEach(function(cb){
@@ -1996,6 +2277,7 @@ function resetSettings(){
     State.manualPoints=[];State.randomPoints=[];
     State.fullImage=true;$('tbFullImage').checked=true;
     $('tbRegionControls').classList.add('hidden');
+    updateRightToolsCollapsed();
     resetRegionCenter();updateRegionOverlays();updateSamplingUI();
     log(t('log.settings.reset'),'warn');
     scheduleSave();
@@ -2196,8 +2478,8 @@ function saveState(){
             propColorPass:$('propColorPass')?$('propColorPass').value:'2.0',
             propColorCond:$('propColorCond')?$('propColorCond').value:'5.0',
             propColorGlobal:$('propColorGlobal')?$('propColorGlobal').value:'5.0',
-            propCsiGood:$('propCsiGood')?$('propCsiGood').value:'90.0',
-            propCsiWarn:$('propCsiWarn')?$('propCsiWarn').value:'70.0',
+            propCsiGood:$('propCsiGood')?$('propCsiGood').value:'2.0',
+            propCsiWarn:$('propCsiWarn')?$('propCsiWarn').value:'5.0',
             propRegionCount:$('propRegionCount')?$('propRegionCount').value:'5',
             propPointsCount:$('propPointsCount')?$('propPointsCount').value:'5',
             propSamplingMode:$('propSamplingMode')?$('propSamplingMode').value:'random',
@@ -2209,6 +2491,11 @@ function saveState(){
             propPhasePass:$('propPhasePass')?$('propPhasePass').value:'85.0',
             propPhaseCond:$('propPhaseCond')?$('propPhaseCond').value:'70.0',
             propPatternGlobal:$('propPatternGlobal')?$('propPatternGlobal').value:'75.0',
+            propGradDiffSens:$('propGradDiffSens')?$('propGradDiffSens').value:'7',
+            propPhaseDiffSens:$('propPhaseDiffSens')?$('propPhaseDiffSens').value:'7',
+            propGradBoundSens:$('propGradBoundSens')?$('propGradBoundSens').value:'4',
+            propPhaseBoundSens:$('propPhaseBoundSens')?$('propPhaseBoundSens').value:'8',
+            propStructuralSens:$('propStructuralSens')?$('propStructuralSens').value:'10',
             propLabDL:$('propLabDL')?$('propLabDL').value:'1.0',
             propLabDA:$('propLabDA')?$('propLabDA').value:'1.0',
             propLabDB:$('propLabDB')?$('propLabDB').value:'1.0',
@@ -2249,6 +2536,7 @@ function restoreState(){
         if($('tbSingleMode'))$('tbSingleMode').checked=State.singleMode;
         if($('tbFullImage'))$('tbFullImage').checked=State.fullImage;
         if($('tbRegionControls'))$('tbRegionControls').classList.toggle('hidden',State.fullImage);
+        updateRightToolsCollapsed();
 
         /* Shape & Size */
         if(s.shape&&$('tbShape')){$('tbShape').value=s.shape;$('tbRectGroup').style.display=s.shape==='rectangle'?'':'none';}
@@ -2291,10 +2579,25 @@ function restoreState(){
             'propColorGlobal','propCsiGood','propCsiWarn','propRegionCount','propPointsCount',
             'propSamplingMode','propIlluminant','propSsimPass','propSsimCond','propGradPass',
             'propGradCond','propPhasePass','propPhaseCond','propPatternGlobal',
+            'propGradDiffSens','propPhaseDiffSens','propGradBoundSens','propPhaseBoundSens','propStructuralSens',
             'propLabDL','propLabDA','propLabDB','propLabMag',
             'propColorScoringMethod','propPatternScoringMethod',
             'propStructuralPass','propStructuralCond'];
         fields.forEach(function(f){if(s[f]!==undefined&&$(f))$(f).value=s[f];});
+        if($('propCsiGood')&&$('propCsiWarn')){
+            var savedCsiGood=parseFloat($('propCsiGood').value);
+            var savedCsiWarn=parseFloat($('propCsiWarn').value);
+            if(isFinite(savedCsiGood)&&isFinite(savedCsiWarn)&&savedCsiGood>savedCsiWarn){
+                $('propCsiGood').value='2.0';
+                $('propCsiWarn').value='5.0';
+            }
+        }
+        /* Sync slider value labels after restoring */
+        if($('propGradDiffSens')&&$('propGradDiffSensVal'))$('propGradDiffSensVal').textContent=$('propGradDiffSens').value;
+        if($('propPhaseDiffSens')&&$('propPhaseDiffSensVal'))$('propPhaseDiffSensVal').textContent=$('propPhaseDiffSens').value;
+        if($('propGradBoundSens')&&$('propGradBoundSensVal'))$('propGradBoundSensVal').textContent=$('propGradBoundSens').value;
+        if($('propPhaseBoundSens')&&$('propPhaseBoundSensVal'))$('propPhaseBoundSensVal').textContent=$('propPhaseBoundSens').value;
+        if($('propStructuralSens')&&$('propStructuralSensVal'))$('propStructuralSensVal').textContent=$('propStructuralSens').value;
         /* Sync toolbar quick-access controls from restored property values */
         if($('tbAlignmentMode')&&$('propAlignmentMode'))$('tbAlignmentMode').value=$('propAlignmentMode').value;
         if($('tbSamplingCount')&&$('propRegionCount'))$('tbSamplingCount').value=$('propRegionCount').value;
@@ -2323,7 +2626,585 @@ function dataUrlToFile(dataUrl,name){
     }catch(e){return null;}
 }
 
+/* ═══════ Desktop Camera Studio ═══════ */
+var DesktopCamera={
+    stream:null,target:null,mirrored:false,rotation:0,flipH:false,
+    brightness:0,contrast:0,capturedDataUrl:null,devices:[],cropCleanup:null,statusKey:'cam.requesting'
+};
+
+function setDesktopCameraStatus(key,visible){
+    var statusEl=$('dCamStatus');
+    if(!statusEl)return;
+    if(key){
+        DesktopCamera.statusKey=key;
+        statusEl.textContent=t(key);
+    }
+    if(typeof visible!=='undefined'){
+        statusEl.style.display=visible?'':'none';
+    }
+}
+
+function refreshDesktopCameraTranslations(){
+    var overlay=$('dCamOverlay');
+    if(!overlay||!overlay.classList.contains('active'))return;
+    if($('dCamBadge'))$('dCamBadge').textContent=DesktopCamera.target==='ref'?t('rpt.reference'):t('rpt.sample');
+    if($('dCamStatus'))setDesktopCameraStatus(DesktopCamera.statusKey,$('dCamStatus').style.display!=='none');
+    var select=$('dCamDeviceSelect');
+    if(!select)return;
+    if(!DesktopCamera.devices.length&&select.options.length){
+        select.options[0].textContent=t('cam.no.cameras');
+        return;
+    }
+    Array.prototype.forEach.call(select.options,function(opt){
+        var fallbackIndex=opt.getAttribute('data-fallback-index');
+        if(fallbackIndex){
+            opt.textContent=t('cam.select.camera')+' '+fallbackIndex;
+        }
+    });
+}
+
+function initDesktopCameraStudio(){
+    var overlay=$('dCamOverlay');
+    if(!overlay)return;
+    $('dCamClose').addEventListener('click',closeDesktopCameraStudio);
+    $('dCamCancel').addEventListener('click',closeDesktopCameraStudio);
+    $('dCamCapture').addEventListener('click',captureDesktopCameraFrame);
+    $('dCamRetake').addEventListener('click',retakeDesktopCameraCapture);
+    $('dCamUse').addEventListener('click',useDesktopCameraCapture);
+    $('dCamMirror').addEventListener('click',function(){
+        DesktopCamera.mirrored=!DesktopCamera.mirrored;
+        $('dCamVideo').classList.toggle('mirrored',DesktopCamera.mirrored);
+    });
+    $('dCamDeviceSelect').addEventListener('change',function(){
+        if(this.value)startDesktopCameraStream(this.value);
+    });
+    $('dCamRotL').addEventListener('click',function(){
+        DesktopCamera.rotation=(DesktopCamera.rotation-90+360)%360;
+        updateDesktopCapturedPreview();
+    });
+    $('dCamRotR').addEventListener('click',function(){
+        DesktopCamera.rotation=(DesktopCamera.rotation+90)%360;
+        updateDesktopCapturedPreview();
+    });
+    $('dCamFlipH').addEventListener('click',function(){
+        DesktopCamera.flipH=!DesktopCamera.flipH;
+        updateDesktopCapturedPreview();
+    });
+    $('dCamBright').addEventListener('input',function(){
+        DesktopCamera.brightness=parseInt(this.value,10)||0;
+        updateDesktopCapturedPreview();
+    });
+    $('dCamContrast').addEventListener('input',function(){
+        DesktopCamera.contrast=parseInt(this.value,10)||0;
+        updateDesktopCapturedPreview();
+    });
+    overlay.addEventListener('click',function(e){
+        if(e.target===overlay)closeDesktopCameraStudio();
+    });
+}
+
+function openDesktopCameraStudio(target){
+    if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){
+        showAlert('Camera',t('cam.not.supported'),'⚠️');
+        return;
+    }
+    DesktopCamera.target=target||'sample';
+    DesktopCamera.mirrored=false;
+    DesktopCamera.rotation=0;
+    DesktopCamera.flipH=false;
+    DesktopCamera.brightness=0;
+    DesktopCamera.contrast=0;
+    DesktopCamera.capturedDataUrl=null;
+    if(DesktopCamera.cropCleanup){DesktopCamera.cropCleanup();DesktopCamera.cropCleanup=null;}
+    $('dCamOverlay').classList.add('active');
+    $('dCamBadge').textContent=DesktopCamera.target==='ref'?t('rpt.reference'):t('rpt.sample');
+    $('dCamStatus').textContent=t('cam.requesting');
+    $('dCamStatus').style.display='';
+    $('dCamVideo').classList.remove('active');
+    $('dCamVideo').classList.remove('mirrored');
+    $('dCamVideo').style.filter='';
+    $('dCamImg').style.display='none';
+    $('dCamCropOverlay').style.display='none';
+    $('dCamAdjust').style.display='none';
+    $('dCamCapture').style.display='';
+    $('dCamRetake').style.display='none';
+    $('dCamUse').style.display='none';
+    $('dCamBright').value='0';
+    $('dCamContrast').value='0';
+    enumerateDesktopCameras();
+}
+
+function closeDesktopCameraStudio(){
+    stopDesktopCameraStream();
+    if(DesktopCamera.cropCleanup){DesktopCamera.cropCleanup();DesktopCamera.cropCleanup=null;}
+    $('dCamOverlay').classList.remove('active');
+    $('dCamImg').src='';
+    $('dCamVideo').style.filter='';
+    DesktopCamera.capturedDataUrl=null;
+}
+
+function stopDesktopCameraStream(){
+    if(DesktopCamera.stream){
+        DesktopCamera.stream.getTracks().forEach(function(track){track.stop();});
+        DesktopCamera.stream=null;
+    }
+    var video=$('dCamVideo');
+    if(video){
+        video.srcObject=null;
+        video.classList.remove('active');
+    }
+}
+
+function enumerateDesktopCameras(){
+    navigator.mediaDevices.getUserMedia({video:true})
+    .then(function(stream){
+        stream.getTracks().forEach(function(track){track.stop();});
+        return navigator.mediaDevices.enumerateDevices();
+    })
+    .then(function(devices){
+        DesktopCamera.devices=devices.filter(function(device){return device.kind==='videoinput';});
+        var select=$('dCamDeviceSelect');
+        select.innerHTML='';
+        if(!DesktopCamera.devices.length){
+            var noneOpt=document.createElement('option');
+            noneOpt.textContent=t('cam.no.cameras');
+            select.appendChild(noneOpt);
+            $('dCamStatus').textContent=t('cam.no.cameras');
+            $('dCamStatus').style.display='';
+            return;
+        }
+        DesktopCamera.devices.forEach(function(device,index){
+            var opt=document.createElement('option');
+            opt.value=device.deviceId;
+            opt.textContent=device.label||(t('cam.select.camera')+' '+(index+1));
+            select.appendChild(opt);
+        });
+        startDesktopCameraStream(DesktopCamera.devices[0].deviceId);
+    })
+    .catch(function(err){
+        $('dCamStatus').textContent=t('cam.permission.denied');
+        $('dCamStatus').style.display='';
+        log('Camera access error: '+(err&&err.message||err),'error');
+    });
+}
+
+function startDesktopCameraStream(deviceId){
+    stopDesktopCameraStream();
+    $('dCamStatus').textContent=t('cam.requesting');
+    $('dCamStatus').style.display='';
+    var videoSettings={width:{ideal:1920},height:{ideal:1080}};
+    if(deviceId)videoSettings.deviceId={exact:deviceId};
+    navigator.mediaDevices.getUserMedia({video:videoSettings})
+    .then(function(stream){
+        DesktopCamera.stream=stream;
+        var video=$('dCamVideo');
+        video.srcObject=stream;
+        video.classList.add('active');
+        video.classList.toggle('mirrored',DesktopCamera.mirrored);
+        if(video.play)video.play().catch(function(){});
+        $('dCamStatus').style.display='none';
+    })
+    .catch(function(err){
+        $('dCamStatus').textContent=t('cam.permission.denied');
+        $('dCamStatus').style.display='';
+        log('Camera stream error: '+(err&&err.message||err),'error');
+    });
+}
+
+function captureDesktopCameraFrame(){
+    var video=$('dCamVideo');
+    if(!video||!video.videoWidth){
+        showAlert('Camera',t('cam.requesting'),'⚠️');
+        return;
+    }
+    var canvas=$('dCamCanvas');
+    var ctx=canvas.getContext('2d');
+    if(!ctx)return;
+    canvas.width=video.videoWidth;
+    canvas.height=video.videoHeight;
+    if(DesktopCamera.mirrored){
+        ctx.translate(canvas.width,0);
+        ctx.scale(-1,1);
+    }
+    ctx.drawImage(video,0,0,canvas.width,canvas.height);
+    ctx.setTransform(1,0,0,1,0,0);
+    DesktopCamera.capturedDataUrl=canvas.toDataURL('image/png');
+    stopDesktopCameraStream();
+    var img=$('dCamImg');
+    img.src=DesktopCamera.capturedDataUrl;
+    img.style.display='';
+    $('dCamCapture').style.display='none';
+    $('dCamRetake').style.display='';
+    $('dCamUse').style.display='';
+    $('dCamAdjust').style.display='flex';
+    $('dCamStatus').style.display='none';
+    initDesktopCameraCrop();
+    log(t('cam.captured'),'success');
+}
+
+function retakeDesktopCameraCapture(){
+    DesktopCamera.capturedDataUrl=null;
+    DesktopCamera.rotation=0;
+    DesktopCamera.flipH=false;
+    DesktopCamera.brightness=0;
+    DesktopCamera.contrast=0;
+    $('dCamBright').value='0';
+    $('dCamContrast').value='0';
+    $('dCamImg').style.display='none';
+    $('dCamCropOverlay').style.display='none';
+    $('dCamAdjust').style.display='none';
+    $('dCamCapture').style.display='';
+    $('dCamRetake').style.display='none';
+    $('dCamUse').style.display='none';
+    if(DesktopCamera.cropCleanup){DesktopCamera.cropCleanup();DesktopCamera.cropCleanup=null;}
+    var deviceSelect=$('dCamDeviceSelect');
+    if(deviceSelect&&deviceSelect.value)startDesktopCameraStream(deviceSelect.value);
+    else enumerateDesktopCameras();
+}
+
+function initDesktopCameraCrop(){
+    var overlay=$('dCamCropOverlay');
+    var box=$('dCamCropBox');
+    var area=$('dCamPreview');
+    if(!overlay||!box||!area)return;
+    if(DesktopCamera.cropCleanup){DesktopCamera.cropCleanup();}
+    overlay.style.display='block';
+    var pad=30;
+    box.style.left=pad+'px';
+    box.style.top=pad+'px';
+    box.style.width=Math.max(120,area.clientWidth-pad*2)+'px';
+    box.style.height=Math.max(120,area.clientHeight-pad*2)+'px';
+    var cropState={dragging:false,resizing:null,sx:0,sy:0,ox:0,oy:0,ow:0,oh:0};
+    function onBoxDown(e){
+        if(e.target.classList.contains('cam-crop-handle'))return;
+        e.preventDefault();
+        cropState.dragging=true;
+        cropState.sx=e.clientX;cropState.sy=e.clientY;
+        cropState.ox=box.offsetLeft;cropState.oy=box.offsetTop;
+    }
+    function onHandleDown(e){
+        e.preventDefault();
+        e.stopPropagation();
+        cropState.resizing=(this.className.match(/cam-crop-(nw|ne|sw|se)/)||[])[1]||null;
+        cropState.sx=e.clientX;cropState.sy=e.clientY;
+        cropState.ox=box.offsetLeft;cropState.oy=box.offsetTop;
+        cropState.ow=box.offsetWidth;cropState.oh=box.offsetHeight;
+    }
+    function onMove(e){
+        var areaW=area.clientWidth,areaH=area.clientHeight;
+        if(cropState.dragging){
+            var dx=e.clientX-cropState.sx,dy=e.clientY-cropState.sy;
+            var left=Math.max(0,Math.min(cropState.ox+dx,areaW-box.offsetWidth));
+            var top=Math.max(0,Math.min(cropState.oy+dy,areaH-box.offsetHeight));
+            box.style.left=left+'px';
+            box.style.top=top+'px';
+            return;
+        }
+        if(!cropState.resizing)return;
+        var dx2=e.clientX-cropState.sx,dy2=e.clientY-cropState.sy;
+        var minSize=40,left2=cropState.ox,top2=cropState.oy,width2=cropState.ow,height2=cropState.oh;
+        if(cropState.resizing.indexOf('e')>=0)width2=Math.max(minSize,cropState.ow+dx2);
+        if(cropState.resizing.indexOf('s')>=0)height2=Math.max(minSize,cropState.oh+dy2);
+        if(cropState.resizing.indexOf('w')>=0){
+            left2=Math.max(0,cropState.ox+dx2);
+            width2=Math.max(minSize,cropState.ow-dx2);
+            if(left2+width2>cropState.ox+cropState.ow)left2=cropState.ox+cropState.ow-width2;
+        }
+        if(cropState.resizing.indexOf('n')>=0){
+            top2=Math.max(0,cropState.oy+dy2);
+            height2=Math.max(minSize,cropState.oh-dy2);
+            if(top2+height2>cropState.oy+cropState.oh)top2=cropState.oy+cropState.oh-height2;
+        }
+        if(left2+width2>areaW)width2=areaW-left2;
+        if(top2+height2>areaH)height2=areaH-top2;
+        box.style.left=Math.max(0,left2)+'px';
+        box.style.top=Math.max(0,top2)+'px';
+        box.style.width=Math.max(minSize,width2)+'px';
+        box.style.height=Math.max(minSize,height2)+'px';
+    }
+    function onUp(){
+        cropState.dragging=false;
+        cropState.resizing=null;
+    }
+    box.addEventListener('mousedown',onBoxDown);
+    box.querySelectorAll('.cam-crop-handle').forEach(function(handle){
+        handle.addEventListener('mousedown',onHandleDown);
+    });
+    document.addEventListener('mousemove',onMove);
+    document.addEventListener('mouseup',onUp);
+    DesktopCamera.cropCleanup=function(){
+        box.removeEventListener('mousedown',onBoxDown);
+        box.querySelectorAll('.cam-crop-handle').forEach(function(handle){
+            handle.removeEventListener('mousedown',onHandleDown);
+        });
+        document.removeEventListener('mousemove',onMove);
+        document.removeEventListener('mouseup',onUp);
+    };
+}
+
+function applyDesktopCameraAdjustments(srcDataUrl,callback){
+    var img=new Image();
+    img.onload=function(){
+        var w=img.naturalWidth,h=img.naturalHeight;
+        var canvas=document.createElement('canvas');
+        var ctx=canvas.getContext('2d');
+        if(!ctx)return;
+        var radians=DesktopCamera.rotation*Math.PI/180;
+        var canvasW=(DesktopCamera.rotation%180===0)?w:h;
+        var canvasH=(DesktopCamera.rotation%180===0)?h:w;
+        canvas.width=canvasW;
+        canvas.height=canvasH;
+        ctx.translate(canvasW/2,canvasH/2);
+        ctx.rotate(radians);
+        if(DesktopCamera.flipH)ctx.scale(-1,1);
+        ctx.drawImage(img,-w/2,-h/2,w,h);
+        ctx.setTransform(1,0,0,1,0,0);
+        if(DesktopCamera.brightness!==0||DesktopCamera.contrast!==0){
+            var imageData=ctx.getImageData(0,0,canvas.width,canvas.height);
+            var data=imageData.data;
+            var brightnessFactor=DesktopCamera.brightness*2.55;
+            var contrastFactor=(DesktopCamera.contrast+100)/100;
+            contrastFactor*=contrastFactor;
+            for(var i=0;i<data.length;i+=4){
+                for(var channel=0;channel<3;channel++){
+                    var value=data[i+channel]+brightnessFactor;
+                    value=((value/255-0.5)*contrastFactor+0.5)*255;
+                    data[i+channel]=Math.max(0,Math.min(255,value));
+                }
+            }
+            ctx.putImageData(imageData,0,0);
+        }
+        callback(canvas.toDataURL('image/png'),canvas.width,canvas.height);
+    };
+    img.src=srcDataUrl;
+}
+
+function updateDesktopCapturedPreview(){
+    if(!DesktopCamera.capturedDataUrl)return;
+    applyDesktopCameraAdjustments(DesktopCamera.capturedDataUrl,function(url){
+        var img=$('dCamImg');
+        img.onload=function(){
+            if(DesktopCamera.cropCleanup)initDesktopCameraCrop();
+            img.onload=null;
+        };
+        img.src=url;
+    });
+}
+
+function useDesktopCameraCapture(){
+    if(!DesktopCamera.capturedDataUrl)return;
+    applyDesktopCameraAdjustments(DesktopCamera.capturedDataUrl,function(adjustedUrl,fullW,fullH){
+        var area=$('dCamPreview');
+        var box=$('dCamCropBox');
+        var imgEl=$('dCamImg');
+        var sx=0,sy=0,sw=fullW,sh=fullH;
+        if(imgEl&&imgEl.style.display!=='none'&&box&&$('dCamCropOverlay').style.display!=='none'){
+            var imgRect=imgEl.getBoundingClientRect();
+            var areaRect=area.getBoundingClientRect();
+            var dispW=imgRect.width,dispH=imgRect.height;
+            if(dispW>0&&dispH>0){
+                var dispX=imgRect.left-areaRect.left;
+                var dispY=imgRect.top-areaRect.top;
+                var bx=box.offsetLeft-dispX;
+                var by=box.offsetTop-dispY;
+                var bw=box.offsetWidth;
+                var bh=box.offsetHeight;
+                var scaleX=fullW/dispW,scaleY=fullH/dispH;
+                sx=Math.max(0,Math.round(bx*scaleX));
+                sy=Math.max(0,Math.round(by*scaleY));
+                sw=Math.min(fullW-sx,Math.round(bw*scaleX));
+                sh=Math.min(fullH-sy,Math.round(bh*scaleY));
+                if(sw<10||sh<10){sx=0;sy=0;sw=fullW;sh=fullH;}
+            }
+        }
+        var cropCanvas=document.createElement('canvas');
+        cropCanvas.width=sw;
+        cropCanvas.height=sh;
+        var cropCtx=cropCanvas.getContext('2d');
+        if(!cropCtx)return;
+        var adjustedImg=new Image();
+        adjustedImg.onload=function(){
+            cropCtx.drawImage(adjustedImg,sx,sy,sw,sh,0,0,sw,sh);
+            var file=dataUrlToFile(cropCanvas.toDataURL('image/png'),'camera_capture.png');
+            if(!file){
+                showAlert('Camera','Could not build captured image file.','❌');
+                return;
+            }
+            loadImage(DesktopCamera.target==='ref'?'ref':'sample',file);
+            log(DesktopCamera.target==='ref'?t('cam.assigned.ref'):t('cam.assigned.sample'),'success');
+            closeDesktopCameraStudio();
+        };
+        adjustedImg.src=adjustedUrl;
+    });
+}
+
 /* Auto-save on any meaningful change — debounced */
+function openDesktopCameraStudio(target){
+    if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){
+        showAlert(t('cam.studio.title'),t('cam.not.supported'),'\u26a0\ufe0f');
+        return;
+    }
+    DesktopCamera.target=target||'sample';
+    DesktopCamera.mirrored=false;
+    DesktopCamera.rotation=0;
+    DesktopCamera.flipH=false;
+    DesktopCamera.brightness=0;
+    DesktopCamera.contrast=0;
+    DesktopCamera.capturedDataUrl=null;
+    DesktopCamera.statusKey='cam.requesting';
+    if(DesktopCamera.cropCleanup){DesktopCamera.cropCleanup();DesktopCamera.cropCleanup=null;}
+    $('dCamOverlay').classList.add('active');
+    $('dCamBadge').textContent=DesktopCamera.target==='ref'?t('rpt.reference'):t('rpt.sample');
+    setDesktopCameraStatus('cam.requesting',true);
+    $('dCamVideo').classList.remove('active');
+    $('dCamVideo').classList.remove('mirrored');
+    $('dCamVideo').style.filter='';
+    $('dCamImg').style.display='none';
+    $('dCamCropOverlay').style.display='none';
+    $('dCamAdjust').style.display='none';
+    $('dCamCapture').style.display='';
+    $('dCamRetake').style.display='none';
+    $('dCamUse').style.display='none';
+    $('dCamBright').value='0';
+    $('dCamContrast').value='0';
+    enumerateDesktopCameras();
+}
+
+function enumerateDesktopCameras(){
+    navigator.mediaDevices.getUserMedia({video:true})
+    .then(function(stream){
+        stream.getTracks().forEach(function(track){track.stop();});
+        return navigator.mediaDevices.enumerateDevices();
+    })
+    .then(function(devices){
+        DesktopCamera.devices=devices.filter(function(device){return device.kind==='videoinput';});
+        var select=$('dCamDeviceSelect');
+        select.innerHTML='';
+        if(!DesktopCamera.devices.length){
+            var noneOpt=document.createElement('option');
+            noneOpt.textContent=t('cam.no.cameras');
+            select.appendChild(noneOpt);
+            setDesktopCameraStatus('cam.no.cameras',true);
+            return;
+        }
+        DesktopCamera.devices.forEach(function(device,index){
+            var opt=document.createElement('option');
+            opt.value=device.deviceId;
+            if(device.label){
+                opt.textContent=device.label;
+            }else{
+                opt.setAttribute('data-fallback-index',String(index+1));
+                opt.textContent=t('cam.select.camera')+' '+(index+1);
+            }
+            select.appendChild(opt);
+        });
+        startDesktopCameraStream(DesktopCamera.devices[0].deviceId);
+    })
+    .catch(function(err){
+        setDesktopCameraStatus('cam.permission.denied',true);
+        log(t('cam.access.error')+': '+(err&&err.message||err),'error');
+    });
+}
+
+function startDesktopCameraStream(deviceId){
+    stopDesktopCameraStream();
+    setDesktopCameraStatus('cam.requesting',true);
+    var videoSettings={width:{ideal:1920},height:{ideal:1080}};
+    if(deviceId)videoSettings.deviceId={exact:deviceId};
+    navigator.mediaDevices.getUserMedia({video:videoSettings})
+    .then(function(stream){
+        DesktopCamera.stream=stream;
+        var video=$('dCamVideo');
+        video.srcObject=stream;
+        video.classList.add('active');
+        video.classList.toggle('mirrored',DesktopCamera.mirrored);
+        if(video.play)video.play().catch(function(){});
+        setDesktopCameraStatus('cam.requesting',false);
+    })
+    .catch(function(err){
+        setDesktopCameraStatus('cam.permission.denied',true);
+        log(t('cam.stream.error')+': '+(err&&err.message||err),'error');
+    });
+}
+
+function captureDesktopCameraFrame(){
+    var video=$('dCamVideo');
+    if(!video||!video.videoWidth){
+        showAlert(t('cam.studio.title'),t('cam.requesting'),'\u26a0\ufe0f');
+        return;
+    }
+    var canvas=$('dCamCanvas');
+    var ctx=canvas.getContext('2d');
+    if(!ctx)return;
+    canvas.width=video.videoWidth;
+    canvas.height=video.videoHeight;
+    if(DesktopCamera.mirrored){
+        ctx.translate(canvas.width,0);
+        ctx.scale(-1,1);
+    }
+    ctx.drawImage(video,0,0,canvas.width,canvas.height);
+    ctx.setTransform(1,0,0,1,0,0);
+    DesktopCamera.capturedDataUrl=canvas.toDataURL('image/png');
+    stopDesktopCameraStream();
+    var img=$('dCamImg');
+    img.src=DesktopCamera.capturedDataUrl;
+    img.style.display='';
+    $('dCamCapture').style.display='none';
+    $('dCamRetake').style.display='';
+    $('dCamUse').style.display='';
+    $('dCamAdjust').style.display='flex';
+    setDesktopCameraStatus(DesktopCamera.statusKey,false);
+    initDesktopCameraCrop();
+    log(t('cam.captured'),'success');
+}
+
+function useDesktopCameraCapture(){
+    if(!DesktopCamera.capturedDataUrl)return;
+    applyDesktopCameraAdjustments(DesktopCamera.capturedDataUrl,function(adjustedUrl,fullW,fullH){
+        var area=$('dCamPreview');
+        var box=$('dCamCropBox');
+        var imgEl=$('dCamImg');
+        var sx=0,sy=0,sw=fullW,sh=fullH;
+        if(imgEl&&imgEl.style.display!=='none'&&box&&$('dCamCropOverlay').style.display!=='none'){
+            var imgRect=imgEl.getBoundingClientRect();
+            var areaRect=area.getBoundingClientRect();
+            var dispW=imgRect.width,dispH=imgRect.height;
+            if(dispW>0&&dispH>0){
+                var dispX=imgRect.left-areaRect.left;
+                var dispY=imgRect.top-areaRect.top;
+                var bx=box.offsetLeft-dispX;
+                var by=box.offsetTop-dispY;
+                var bw=box.offsetWidth;
+                var bh=box.offsetHeight;
+                var scaleX=fullW/dispW,scaleY=fullH/dispH;
+                sx=Math.max(0,Math.round(bx*scaleX));
+                sy=Math.max(0,Math.round(by*scaleY));
+                sw=Math.min(fullW-sx,Math.round(bw*scaleX));
+                sh=Math.min(fullH-sy,Math.round(bh*scaleY));
+                if(sw<10||sh<10){sx=0;sy=0;sw=fullW;sh=fullH;}
+            }
+        }
+        var cropCanvas=document.createElement('canvas');
+        cropCanvas.width=sw;
+        cropCanvas.height=sh;
+        var cropCtx=cropCanvas.getContext('2d');
+        if(!cropCtx)return;
+        var adjustedImg=new Image();
+        adjustedImg.onload=function(){
+            cropCtx.drawImage(adjustedImg,sx,sy,sw,sh,0,0,sw,sh);
+            var file=dataUrlToFile(cropCanvas.toDataURL('image/png'),'camera_capture.png');
+            if(!file){
+                showAlert(t('cam.studio.title'),t('cam.file.build.error'),'\u274c');
+                return;
+            }
+            loadImage(DesktopCamera.target==='ref'?'ref':'sample',file);
+            log(DesktopCamera.target==='ref'?t('cam.assigned.ref'):t('cam.assigned.sample'),'success');
+            closeDesktopCameraStudio();
+        };
+        adjustedImg.src=adjustedUrl;
+    });
+}
+
 var _saveTimer=null;
 function scheduleSave(){
     if(_saveTimer)clearTimeout(_saveTimer);
@@ -2435,6 +3316,8 @@ function runThesisTest(){
     log('Collecting current desktop settings...','info');
 
     var currentSettings=collectSettings();
+    /* Thesis output language follows the Report Language setting in General Settings. */
+    log('Thesis report language: '+currentSettings.report_lang,'info');
     var currentRegionData=buildRegionData();
 
     var refFileInfo=null;
@@ -2526,6 +3409,103 @@ function _proceedWithThesisTest(currentSettings,currentRegionData,refFileInfo,sa
 }
 
 /* ═══ Branded Image-Required Warning Dialog ═══ */
+function runBatchThesisTest(){
+    if(!window.pywebview||!window.pywebview.api){
+        showAlert('Error','Desktop API not available','!');
+        return;
+    }
+
+    var settings=collectSettings();
+    var regionData=buildRegionData();
+    log('Starting 100-sample batch thesis test...','info');
+    log('Batch report language: '+settings.report_lang,'info');
+    log('Batch alignment mode: '+(settings.alignment_mode||'direct'),'info');
+    var dialog=createBatchProgressDialog();
+
+    window.pywebview.api.start_batch_thesis_test(settings,regionData)
+        .then(function(startResult){
+            if(!startResult||!startResult.success){
+                dialog.close();
+                var err=(startResult&&startResult.error)||'Could not start batch thesis test';
+                log(err,'error');
+                showAlert('Error',err,'X');
+                return;
+            }
+            pollBatchThesisProgress(startResult.job_id,dialog);
+        })
+        .catch(function(err){
+            dialog.close();
+            log('ERROR: '+(err.message||err),'error');
+            showAlert('Error',(err.message||String(err)),'X');
+        });
+}
+
+function createBatchProgressDialog(){
+    var overlay=document.createElement('div');
+    overlay.style.cssText='position:fixed;inset:0;background:rgba(5,10,25,0.76);backdrop-filter:blur(7px);z-index:12000;display:flex;align-items:center;justify-content:center;';
+    var card=document.createElement('div');
+    card.style.cssText='width:min(520px,92vw);background:var(--bg-panel);border:1px solid var(--border);border-radius:10px;box-shadow:0 18px 55px rgba(0,0,0,0.55);padding:26px 28px;color:var(--text);';
+    var title=document.createElement('div');
+    title.textContent=t('loading.batch.title');
+    title.style.cssText='font-size:16px;font-weight:800;letter-spacing:0;margin-bottom:8px;';
+    var status=document.createElement('div');
+    status.textContent=t('loading.batch.starting');
+    status.style.cssText='font-size:12px;color:var(--text-dim);line-height:1.45;margin-bottom:18px;min-height:34px;';
+    var barWrap=document.createElement('div');
+    barWrap.style.cssText='height:14px;background:var(--bg-input);border:1px solid var(--border);border-radius:7px;overflow:hidden;';
+    var bar=document.createElement('div');
+    bar.style.cssText='height:100%;width:0%;background:linear-gradient(90deg,var(--accent),#27ae60);border-radius:7px;transition:width 0.22s ease;';
+    barWrap.appendChild(bar);
+    var pct=document.createElement('div');
+    pct.textContent=t('batch.progress.label')+': 0%';
+    pct.style.cssText='font-size:12px;font-weight:700;color:var(--accent);text-align:right;margin-top:8px;';
+    card.appendChild(title);card.appendChild(status);card.appendChild(barWrap);card.appendChild(pct);
+    overlay.appendChild(card);
+    document.body.appendChild(overlay);
+    return {
+        set:function(progress,message){
+            var p=Math.max(0,Math.min(100,parseInt(progress||0,10)));
+            bar.style.width=p+'%';
+            pct.textContent=t('batch.progress.label')+': '+p+'%';
+            if(message)status.textContent=message;
+        },
+        close:function(){if(overlay.parentNode)overlay.parentNode.removeChild(overlay);}
+    };
+}
+
+function pollBatchThesisProgress(jobId,dialog){
+    window.pywebview.api.get_batch_thesis_progress(jobId)
+        .then(function(job){
+            if(!job||job.success===false&&job.error==='Batch job not found'){
+                dialog.close();
+                showAlert('Error',(job&&job.error)||'Batch job not found','X');
+                return;
+            }
+            dialog.set(job.progress,job.status);
+            if(job.running){
+                setTimeout(function(){pollBatchThesisProgress(jobId,dialog);},650);
+                return;
+            }
+            dialog.close();
+            if(job.success){
+                var result=job.result||{};
+                log('Batch thesis test complete','success');
+                log('Folder: '+result.output_folder,'info');
+                log('JSON: '+result.json_path,'info');
+                log('Heatmap PDF: '+result.pdf_path,'info');
+                showAlert(t('batch.complete.title'),t('batch.complete.msg')+'\n\nFolder:\n'+result.output_folder+'\n\nJSON:\n'+result.json_path+'\n\nPDF:\n'+result.pdf_path,'OK');
+            }else{
+                log(t('loading.batch.failed')+': '+(job.error||'Unknown error'),'error');
+                showAlert('Error',job.error||t('loading.batch.failed'),'X');
+            }
+        })
+        .catch(function(err){
+            dialog.close();
+            log('ERROR: '+(err.message||err),'error');
+            showAlert('Error',(err.message||String(err)),'X');
+        });
+}
+
 function _showImageRequiredDialog(title, msg){
     var overlay=document.createElement('div');
     overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.72);backdrop-filter:blur(5px);z-index:10500;display:flex;align-items:center;justify-content:center;animation:fadeIn 0.15s ease;';
@@ -2555,6 +3535,157 @@ function _showImageRequiredDialog(title, msg){
     overlay.appendChild(dialog);
     document.body.appendChild(overlay);
     okBtn.focus();
+}
+
+/* ═══ Alignment Auto-Apply to Workspace (v3.0.0) ═══
+   When the user picks an alignment technique from the toolbar / properties
+   dropdown OR confirms one inside SPACTRA Studio, run it on the current
+   workspace images and swap the displayed previews so points can be placed
+   on the processed result. Switching back to "direct" restores originals. */
+var _alignAutoApply={inFlight:null,lastMode:null,loaderTimer:null};
+
+/* ─── Loader UI for the alignment auto-apply ────────────────────────────
+   Appears anchored to #panelViewer after a short delay so instant
+   operations (e.g. "direct" restore) never flash a loader. Theme-aware
+   via CSS vars; no percentage — only animated rings and a status line. */
+function _showAlignLoader(mode){
+    var host=document.getElementById('panelViewer');if(!host)return;
+    var ov=document.getElementById('alignLoaderOverlay');
+    if(!ov){
+        ov=document.createElement('div');
+        ov.id='alignLoaderOverlay';
+        ov.className='align-loader-overlay';
+        ov.innerHTML=''
+            +'<div class="align-loader-card">'
+            +'<div class="align-loader-ring"><i></i><i></i><i></i></div>'
+            +'<div class="align-loader-title" id="alignLoaderTitle"></div>'
+            +'<div class="align-loader-sub" id="alignLoaderSub"></div>'
+            +'</div>';
+        host.appendChild(ov);
+    }
+    var labelMap={ai_smart_match:'AI SmartMatch',bestch:'BESTCH',direct:'Direct Pixel'};
+    var title=(typeof t==='function'?t('align.applying'):'')||'Applying alignment';
+    var sub=(typeof t==='function'?t('align.processing'):'')||'Processing images, please wait…';
+    document.getElementById('alignLoaderTitle').textContent=title+' — '+(labelMap[mode]||mode);
+    document.getElementById('alignLoaderSub').textContent=sub;
+    ov.classList.add('show');
+}
+function _hideAlignLoader(){
+    var ov=document.getElementById('alignLoaderOverlay');
+    if(ov)ov.classList.remove('show');
+}
+function _scheduleAlignLoader(mode){
+    /* Wait 180ms before showing — fast operations don't flash a loader. */
+    if(_alignAutoApply.loaderTimer){clearTimeout(_alignAutoApply.loaderTimer);}
+    _alignAutoApply.loaderTimer=setTimeout(function(){_showAlignLoader(mode);},180);
+}
+function _clearAlignLoader(){
+    if(_alignAutoApply.loaderTimer){
+        clearTimeout(_alignAutoApply.loaderTimer);
+        _alignAutoApply.loaderTimer=null;
+    }
+    _hideAlignLoader();
+}
+
+function _restoreOriginalWorkspace(){
+    if(State.refDataUrlOriginal){
+        State.refDataUrl=State.refDataUrlOriginal;
+        State.refW=State.refWOriginal||State.refW;
+        State.refH=State.refHOriginal||State.refH;
+        var rname=State.refFile?State.refFile.name:'reference.png';
+        showPreview('ref',State.refDataUrl,State.refW,State.refH,rname);
+    }
+    if(State.sampleDataUrlOriginal){
+        State.sampleDataUrl=State.sampleDataUrlOriginal;
+        State.sampleW=State.sampleWOriginal||State.sampleW;
+        State.sampleH=State.sampleHOriginal||State.sampleH;
+        var sname=State.sampleFile?State.sampleFile.name:'sample.png';
+        showPreview('sample',State.sampleDataUrl,State.sampleW,State.sampleH,sname);
+    }
+    updateSliderMax();updateRegionOverlays();
+}
+
+function applyAlignmentToWorkspace(mode){
+    mode=mode||'direct';
+    if(_alignAutoApply.lastMode===mode)return;
+    _alignAutoApply.lastMode=mode;
+
+    if(mode==='direct'){_restoreOriginalWorkspace();_clearAlignLoader();return;}
+
+    if(!State.refFile||!State.sampleFile){
+        log(t('log.align.need.images')||'Load both images before applying an alignment technique','warn');
+        _clearAlignLoader();
+        return;
+    }
+
+    /* Always run alignment from the original images, never the previously aligned result */
+    var refBase=State.refDataUrlOriginal||State.refDataUrl;
+    var samBase=State.sampleDataUrlOriginal||State.sampleDataUrl;
+    if(!refBase||!samBase)return;
+
+    var fd=new FormData();
+    fd.append('mode',mode);
+    fd.append('region_data',JSON.stringify(buildRegionData()||{}));
+
+    function _dataUrlToBlob(dataUrl){
+        var parts=dataUrl.split(',');
+        var meta=parts[0];var b64=parts[1];
+        var mime=(meta.match(/data:([^;]+)/)||[])[1]||'image/png';
+        var bin=atob(b64);var arr=new Uint8Array(bin.length);
+        for(var i=0;i<bin.length;i++)arr[i]=bin.charCodeAt(i);
+        return new Blob([arr],{type:mime});
+    }
+
+    try{
+        fd.append('ref_image',_dataUrlToBlob(refBase),(State.refFile&&State.refFile.name)||'ref.png');
+        fd.append('sample_image',_dataUrlToBlob(samBase),(State.sampleFile&&State.sampleFile.name)||'sample.png');
+    }catch(err){log('Alignment auto-apply: failed to package images: '+err.message,'error');return;}
+
+    if(_alignAutoApply.inFlight){try{_alignAutoApply.inFlight.abort();}catch(e){}}
+    var ctrl=(typeof AbortController!=='undefined')?new AbortController():null;
+    _alignAutoApply.inFlight=ctrl;
+
+    log(t('log.align.applying')||('Applying alignment: '+mode),'info');
+    _scheduleAlignLoader(mode);
+
+    fetch('/api/alignment/preview',{method:'POST',body:fd,signal:ctrl?ctrl.signal:undefined})
+        .then(function(r){return r.json();})
+        .then(function(data){
+            _alignAutoApply.inFlight=null;
+            _clearAlignLoader();
+            if(!data||!data.success||!data.previews){
+                log((data&&data.error)||'Alignment preview failed','error');
+                return;
+            }
+            var p=data.previews;
+            var newRefSrc=p.ref_cropped?'data:image/png;base64,'+p.ref_cropped
+                          :(p.ref_source?'data:image/png;base64,'+p.ref_source:null);
+            var alignedSrc=p.aligned?'data:image/png;base64,'+p.aligned:null;
+
+            function _apply(which,src,wKey,hKey,urlKey){
+                if(!src)return;
+                var img=new Image();
+                img.onload=function(){
+                    State[wKey]=img.naturalWidth;State[hKey]=img.naturalHeight;
+                    State[urlKey]=src;
+                    var fname=which==='ref'
+                        ?(State.refFile?State.refFile.name:'reference.png')
+                        :(State.sampleFile?State.sampleFile.name:'aligned_sample.png');
+                    showPreview(which,src,img.naturalWidth,img.naturalHeight,fname);
+                    updateSliderMax();updateRegionOverlays();
+                };
+                img.src=src;
+            }
+            _apply('ref',newRefSrc,'refW','refH','refDataUrl');
+            _apply('sample',alignedSrc,'sampleW','sampleH','sampleDataUrl');
+            log(t('log.align.applied')||('Alignment applied: '+mode),'success');
+        })
+        .catch(function(err){
+            _alignAutoApply.inFlight=null;
+            _clearAlignLoader();
+            if(err&&err.name==='AbortError')return;
+            log('Alignment preview error: '+err.message,'error');
+        });
 }
 
 /* ═══ SPACTRA Studio (v3.0.0) ═══ */
@@ -2627,6 +3758,7 @@ function downloadCalibrationReport(){
 return {closeAlert:function(){$('alertDialog').style.display='none';},
         saveAs:saveAsDownload,
         resetToDefault:resetToDefault,
+        openDesktopCameraStudio:openDesktopCameraStudio,
         openAlignmentStudio:openAlignmentStudio,
         runCalibration:runCalibration,
         downloadCalibrationReport:downloadCalibrationReport,

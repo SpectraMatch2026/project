@@ -35,7 +35,7 @@ _T = {
     # ── Metric Labels ──────────────────────────────────────────────────────
     'mean_delta_e':         {'en': 'Mean ΔE2000',              'tr': 'Ortalama ΔE2000'},
     'consistency':          {'en': 'Consistency (Std Dev)',     'tr': 'Tutarlılık (Std Sapma)'},
-    'csi_score':            {'en': 'CSI Score',                 'tr': 'RBE Skoru'},
+    'csi_score':            {'en': 'CSI (Full-image ΔE2000)',   'tr': 'CSI (Tam görüntü ΔE2000)'},
     'composite_score':      {'en': 'Composite Score',           'tr': 'Bileşik Skor'},
     'structural_match':     {'en': 'Structural Match',          'tr': 'Yapısal Eşleşme'},
     'worst_metric':         {'en': 'Weakest Metric',            'tr': 'En Zayıf Metrik'},
@@ -216,6 +216,17 @@ def _t(key, lang):
     return entry.get(lang, entry.get('en', key))
 
 
+def _pattern_method_label(method, lang):
+    labels = {
+        'Structural SSIM': {'en': 'Structural SSIM', 'tr': 'Yapısal SSIM'},
+        'Gradient Similarity': {'en': 'Gradient Similarity', 'tr': 'Gradyan Benzerliği'},
+        'Phase Correlation': {'en': 'Phase Correlation', 'tr': 'Faz Korelasyonu'},
+        'Structural Match': {'en': 'Structural Match', 'tr': 'Yapısal Eşleşme'},
+    }
+    entry = labels.get(method)
+    return entry.get(lang, entry.get('en', method)) if entry else method
+
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # HELPER: Threshold-relative position
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -258,11 +269,264 @@ def _level_to_color(level):
     }.get(level, '#7F8C8D')
 
 
+def _fmt_num(value, decimals=2):
+    """Format numeric values compactly for report text."""
+    text = f"{float(value):.{decimals}f}"
+    return text.rstrip('0').rstrip('.') if '.' in text else text
+
+
+def _summary_title(lang):
+    return 'Summary' if lang == 'en' else '\u00d6zet'
+
+
+def _summary_text(status, lang):
+    if lang == 'en':
+        return {
+            'pass': 'All measured values are within the configured thresholds. Refer to application-specific criteria for final determination.',
+            'conditional': 'Some measured values are near the configured thresholds. Refer to application-specific criteria for final determination.',
+            'fail': 'One or more measured values are outside the configured thresholds. Refer to the defined acceptance criteria for final determination.',
+            'good': 'Measured values are within the expected range. Refer to application-specific criteria for final determination.',
+            'warn': 'Some measured values require closer review. Refer to application-specific criteria for final determination.',
+            'poor': 'Measured values indicate notable deviation. Refer to the defined acceptance criteria for final determination.',
+        }.get(status, 'Refer to application-specific criteria for final determination.')
+    return {
+        'pass': 'T\u00fcm \u00f6l\u00e7\u00fclen de\u011ferler yap\u0131land\u0131r\u0131lm\u0131\u015f e\u015fiklerin i\u00e7inde. Nihai belirleme i\u00e7in uygulamaya \u00f6zg\u00fc kriterlere ba\u015fvurun.',
+        'conditional': 'Baz\u0131 \u00f6l\u00e7\u00fclen de\u011ferler yap\u0131land\u0131r\u0131lm\u0131\u015f e\u015fiklere yak\u0131nd\u0131r. Nihai belirleme i\u00e7in uygulamaya \u00f6zg\u00fc kriterlere ba\u015fvurun.',
+        'fail': 'Bir veya daha fazla \u00f6l\u00e7\u00fclen de\u011fer yap\u0131land\u0131r\u0131lm\u0131\u015f e\u015fiklerin d\u0131\u015f\u0131ndad\u0131r. Nihai belirleme i\u00e7in tan\u0131ml\u0131 kabul kriterlerine ba\u015fvurun.',
+        'good': '\u00d6l\u00e7\u00fclen de\u011ferler beklenen aral\u0131ktad\u0131r. Nihai belirleme i\u00e7in uygulamaya \u00f6zg\u00fc kriterlere ba\u015fvurun.',
+        'warn': 'Baz\u0131 \u00f6l\u00e7\u00fclen de\u011ferler daha yak\u0131n inceleme gerektirir. Nihai belirleme i\u00e7in uygulamaya \u00f6zg\u00fc kriterlere ba\u015fvurun.',
+        'poor': '\u00d6l\u00e7\u00fclen de\u011ferler belirgin sapma g\u00f6stermektedir. Nihai belirleme i\u00e7in tan\u0131ml\u0131 kabul kriterlerine ba\u015fvurun.',
+    }.get(status, 'Nihai belirleme i\u00e7in uygulamaya \u00f6zg\u00fc kriterlere ba\u015fvurun.')
+
+
+def _summary_badge_label(status, lang):
+    if lang == 'en':
+        return {
+            'pass': 'PASS',
+            'conditional': 'CONDITIONAL',
+            'fail': 'FAIL',
+            'good': 'GOOD',
+            'warn': 'WARNING',
+            'poor': 'POOR',
+        }.get(status, status.upper())
+    return {
+        'pass': 'GE\u00c7T\u0130',
+        'conditional': 'KO\u015eULLU',
+        'fail': 'KALDI',
+        'good': '\u0130Y\u0130',
+        'warn': 'UYARI',
+        'poor': 'ZAYIF',
+    }.get(status, status.upper())
+
+
+def _neutral_color_deltae_text(value, pass_thr, cond_thr, lang):
+    pass_txt = _fmt_num(pass_thr, 2)
+    cond_txt = _fmt_num(cond_thr, 2)
+    if value <= pass_thr:
+        if lang == 'en':
+            return (
+                f"Measured color difference is below the configured pass threshold (\u2264 {pass_txt}).",
+                "Interpretation depends on application-specific tolerances.",
+                'excellent',
+            )
+        return (
+            f"\u00d6l\u00e7\u00fclen renk fark\u0131 yap\u0131land\u0131r\u0131lm\u0131\u015f ge\u00e7i\u015f e\u015fi\u011finin alt\u0131nda (\u2264 {pass_txt}).",
+            "Yorumlama, uygulamaya \u00f6zg\u00fc toleranslara ba\u011fl\u0131d\u0131r.",
+            'excellent',
+        )
+    if value <= cond_thr:
+        if lang == 'en':
+            return (
+                f"Measured color difference is within the configured conditional range ({pass_txt} to {cond_txt}).",
+                "Interpretation depends on application-specific tolerances.",
+                'marginal',
+            )
+        return (
+            f"\u00d6l\u00e7\u00fclen renk fark\u0131 yap\u0131land\u0131r\u0131lm\u0131\u015f ko\u015fullu aral\u0131k i\u00e7indedir ({pass_txt} - {cond_txt}).",
+            "Yorumlama, uygulamaya \u00f6zg\u00fc toleranslara ba\u011fl\u0131d\u0131r.",
+            'marginal',
+        )
+    if lang == 'en':
+        return (
+            f"Measured color difference exceeds the configured conditional threshold (> {cond_txt}).",
+            "Refer to the defined acceptance criteria for final interpretation.",
+            'poor',
+        )
+    return (
+        f"\u00d6l\u00e7\u00fclen renk fark\u0131 yap\u0131land\u0131r\u0131lm\u0131\u015f ko\u015fullu e\u015fi\u011fi a\u015fmaktad\u0131r (> {cond_txt}).",
+        "Nihai yorum i\u00e7in tan\u0131ml\u0131 kabul kriterlerine ba\u015fvurun.",
+        'poor',
+    )
+
+
+def _neutral_consistency_text(std_dev, pass_thr, lang):
+    ref_limit = max(float(pass_thr), 0.1)
+    limit_txt = _fmt_num(ref_limit, 2)
+    if std_dev <= ref_limit:
+        if lang == 'en':
+            return (
+                f"Regional variation is within the derived consistency reference (\u03c3\u0394E \u2264 {limit_txt}).",
+                "Represents the standard deviation of \u0394E values across sampled regions.",
+                'good' if std_dev > (ref_limit * 0.5) else 'excellent',
+            )
+        return (
+            f"B\u00f6lgesel varyasyon t\u00fcretilmi\u015f tutarl\u0131l\u0131k referans\u0131 i\u00e7indedir (\u03c3\u0394E \u2264 {limit_txt}).",
+            "\u00d6rneklenen b\u00f6lgeler aras\u0131ndaki \u0394E de\u011ferlerinin standart sapmas\u0131d\u0131r.",
+            'good' if std_dev > (ref_limit * 0.5) else 'excellent',
+        )
+    if lang == 'en':
+        return (
+            f"Regional variation exceeds the derived consistency reference (\u03c3\u0394E > {limit_txt}).",
+            "Represents the standard deviation of \u0394E values across sampled regions.",
+            'poor',
+        )
+    return (
+        f"B\u00f6lgesel varyasyon t\u00fcretilmi\u015f tutarl\u0131l\u0131k referans\u0131n\u0131 a\u015fmaktad\u0131r (\u03c3\u0394E > {limit_txt}).",
+        "\u00d6rneklenen b\u00f6lgeler aras\u0131ndaki \u0394E de\u011ferlerinin standart sapmas\u0131d\u0131r.",
+        'poor',
+    )
+
+
+def _neutral_csi_text(value, csi_good_thr, csi_warn_thr, fallback_pass_thr, fallback_cond_thr, lang):
+    legacy_score_mode = csi_good_thr > csi_warn_thr
+    pass_ref = fallback_pass_thr if legacy_score_mode else csi_good_thr
+    cond_ref = fallback_cond_thr if legacy_score_mode else csi_warn_thr
+    pass_txt = _fmt_num(pass_ref, 2)
+    cond_txt = _fmt_num(cond_ref, 2)
+
+    if value <= pass_ref:
+        if lang == 'en':
+            return (
+                f"Full-image \u0394E2000 is below the configured pass threshold (\u2264 {pass_txt}).",
+                "Computed as pixel-by-pixel \u0394E2000 across the full reference and sample images.",
+                'excellent',
+            )
+        return (
+            f"Tam g\u00f6r\u00fcnt\u00fc \u0394E2000 de\u011feri yap\u0131land\u0131r\u0131lm\u0131\u015f ge\u00e7i\u015f e\u015fi\u011finin alt\u0131nda (\u2264 {pass_txt}).",
+            "Referans ve numune g\u00f6r\u00fcnt\u00fclerinin tamam\u0131nda piksel bazl\u0131 \u0394E2000 olarak hesaplan\u0131r.",
+            'excellent',
+        )
+    if value <= cond_ref:
+        if lang == 'en':
+            return (
+                f"Full-image \u0394E2000 is within the configured conditional range ({pass_txt} to {cond_txt}).",
+                "Computed as pixel-by-pixel \u0394E2000 across the full reference and sample images.",
+                'marginal',
+            )
+        return (
+            f"Tam g\u00f6r\u00fcnt\u00fc \u0394E2000 de\u011feri yap\u0131land\u0131r\u0131lm\u0131\u015f ko\u015fullu aral\u0131k i\u00e7indedir ({pass_txt} - {cond_txt}).",
+            "Referans ve numune g\u00f6r\u00fcnt\u00fclerinin tamam\u0131nda piksel bazl\u0131 \u0394E2000 olarak hesaplan\u0131r.",
+            'marginal',
+        )
+    if lang == 'en':
+        return (
+            f"Full-image \u0394E2000 exceeds the configured conditional threshold (> {cond_txt}).",
+            "Computed as pixel-by-pixel \u0394E2000 across the full reference and sample images.",
+            'poor',
+        )
+    return (
+        f"Tam g\u00f6r\u00fcnt\u00fc \u0394E2000 de\u011feri yap\u0131land\u0131r\u0131lm\u0131\u015f ko\u015fullu e\u015fi\u011fi a\u015fmaktad\u0131r (> {cond_txt}).",
+        "Referans ve numune g\u00f6r\u00fcnt\u00fclerinin tamam\u0131nda piksel bazl\u0131 \u0394E2000 olarak hesaplan\u0131r.",
+        'poor',
+    )
+
+
+def _neutral_pattern_composite_text(score, pass_thr, cond_thr, lang):
+    pass_txt = _fmt_num(pass_thr, 1)
+    cond_txt = _fmt_num(cond_thr, 1)
+    if score >= pass_thr:
+        if lang == 'en':
+            return (
+                f"Composite score is above the configured threshold (\u2265 {pass_txt}%).",
+                "Weighted average of the individual pattern-analysis methods.",
+                'excellent',
+            )
+        return (
+            f"Bile\u015fik skor yap\u0131land\u0131r\u0131lm\u0131\u015f e\u015fi\u011fin \u00fcst\u00fcnde (\u2265 {pass_txt}%).",
+            "Bireysel desen analizi y\u00f6ntemlerinin a\u011f\u0131rl\u0131kl\u0131 ortalamas\u0131d\u0131r.",
+            'excellent',
+        )
+    if score >= cond_thr:
+        if lang == 'en':
+            return (
+                f"Composite score is within the configured conditional range ({cond_txt}% to {pass_txt}%).",
+                "Weighted average of the individual pattern-analysis methods.",
+                'marginal',
+            )
+        return (
+            f"Bile\u015fik skor yap\u0131land\u0131r\u0131lm\u0131\u015f ko\u015fullu aral\u0131k i\u00e7indedir ({cond_txt}% - {pass_txt}%).",
+            "Bireysel desen analizi y\u00f6ntemlerinin a\u011f\u0131rl\u0131kl\u0131 ortalamas\u0131d\u0131r.",
+            'marginal',
+        )
+    if lang == 'en':
+        return (
+            f"Composite score is below the configured conditional threshold (< {cond_txt}%).",
+            "Weighted average of the individual pattern-analysis methods.",
+            'poor',
+        )
+    return (
+        f"Bile\u015fik skor yap\u0131land\u0131r\u0131lm\u0131\u015f ko\u015fullu e\u015fi\u011fin alt\u0131ndad\u0131r (< {cond_txt}%).",
+        "Bireysel desen analizi y\u00f6ntemlerinin a\u011f\u0131rl\u0131kl\u0131 ortalamas\u0131d\u0131r.",
+        'poor',
+    )
+
+
+def _neutral_structural_text(score, lang):
+    if score >= 99.0:
+        if lang == 'en':
+            return (
+                "Structural similarity is high — minimal geometric variation detected.",
+                "Based on multi-method pixel-level structural comparison.",
+                'excellent',
+            )
+        return (
+            "Yap\u0131sal benzerlik y\u00fcksek — minimum geometrik varyasyon tespit edildi.",
+            "\u00c7ok y\u00f6ntemli piksel d\u00fczeyinde yap\u0131sal kar\u015f\u0131la\u015ft\u0131rmaya dayal\u0131d\u0131r.",
+            'excellent',
+        )
+    if score >= 95.0:
+        if lang == 'en':
+            return (
+                "Structural similarity is good — limited geometric variation detected.",
+                "Based on multi-method pixel-level structural comparison.",
+                'good',
+            )
+        return (
+            "Yap\u0131sal benzerlik iyi — s\u0131n\u0131rl\u0131 geometrik varyasyon tespit edildi.",
+            "\u00c7ok y\u00f6ntemli piksel d\u00fczeyinde yap\u0131sal kar\u015f\u0131la\u015ft\u0131rmaya dayal\u0131d\u0131r.",
+            'good',
+        )
+    if score >= 90.0:
+        if lang == 'en':
+            return (
+                "Structural similarity is moderate — visible geometric variation detected.",
+                "Based on multi-method pixel-level structural comparison.",
+                'marginal',
+            )
+        return (
+            "Yap\u0131sal benzerlik orta d\u00fczeydedir — g\u00f6r\u00fcn\u00fcr geometrik varyasyon tespit edildi.",
+            "\u00c7ok y\u00f6ntemli piksel d\u00fczeyinde yap\u0131sal kar\u015f\u0131la\u015ft\u0131rmaya dayal\u0131d\u0131r.",
+            'marginal',
+        )
+    if lang == 'en':
+        return (
+            "Structural similarity is low — notable geometric variation detected.",
+            "Based on multi-method pixel-level structural comparison.",
+            'poor',
+        )
+    return (
+        "Yap\u0131sal benzerlik d\u00fc\u015f\u00fckt\u00fcr — belirgin geometrik varyasyon tespit edildi.",
+        "\u00c7ok y\u00f6ntemli piksel d\u00fczeyinde yap\u0131sal kar\u015f\u0131la\u015ft\u0131rmaya dayal\u0131d\u0131r.",
+        'poor',
+    )
+
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # PDF RENDERING — Modern card-based layout (no data tables)
 # ═══════════════════════════════════════════════════════════════════════════════
 
-def render_findings_to_flowables(findings, conclusion_text, conclusion_status, section_title, lang='en'):
+def render_findings_to_flowables(findings, conclusion_text, conclusion_status, section_title, lang='en',
+                                 include_findings=True, include_conclusion_block=True):
     """
     Render findings and conclusion as modern, professional ReportLab flowables.
 
@@ -298,6 +562,9 @@ def render_findings_to_flowables(findings, conclusion_text, conclusion_status, s
 
     flowables = []
 
+    if not include_findings and not include_conclusion_block:
+        return flowables
+
     # Section title
     flowables.append(Paragraph(section_title, StyleH1))
     flowables.append(Spacer(1, 6))
@@ -325,6 +592,9 @@ def render_findings_to_flowables(findings, conclusion_text, conclusion_status, s
     )
 
     page_width = 495  # A4 minus margins (approx)
+
+    if not include_findings:
+        findings = []
 
     for f in findings:
         accent_color = rl_colors.HexColor(_level_to_color(f.get('level', 'good')))
@@ -383,7 +653,10 @@ def render_findings_to_flowables(findings, conclusion_text, conclusion_status, s
         flowables.append(KeepTogether([card_table, Spacer(1, 8)]))
 
     # ── Conclusion Block ──────────────────────────────────────────────────
-    conc_title = _t('title_conclusion', lang)
+    if not include_conclusion_block:
+        return flowables
+
+    conc_title = _summary_title(lang)
 
     # Conclusion status color and label
     status_map = {
@@ -394,7 +667,8 @@ def render_findings_to_flowables(findings, conclusion_text, conclusion_status, s
         'warn':        (ORANGE, 'WARNING'),
         'poor':        (RED, 'POOR'),
     }
-    badge_color, badge_label = status_map.get(conclusion_status, (NEUTRAL, conclusion_status.upper()))
+    badge_color, _ = status_map.get(conclusion_status, (NEUTRAL, conclusion_status.upper()))
+    badge_label = _summary_badge_label(conclusion_status, lang)
 
     badge_style = ParagraphStyle(
         'ConcBadge', fontName=PDF_FONT_BOLD, fontSize=10,
@@ -438,7 +712,7 @@ def render_findings_to_flowables(findings, conclusion_text, conclusion_status, s
 # ═══════════════════════════════════════════════════════════════════════════════
 
 def generate_color_recommendations(mean_de00, reg_stats, csi_value,
-                                    pass_thr, cond_thr, csi_good_thr, csi_warn_thr,
+                                    pass_thr, cond_thr, csi_good_thr=2.0, csi_warn_thr=5.0,
                                     lang='en'):
     """
     Generate findings for the Color Unit report.
@@ -449,6 +723,156 @@ def generate_color_recommendations(mean_de00, reg_stats, csi_value,
         conclusion_status: str — 'pass' | 'conditional' | 'fail'
     """
     findings = []
+
+    de_eval, de_rec, de_level = _neutral_color_deltae_text(mean_de00, pass_thr, cond_thr, lang)
+    findings.append({
+        'metric': _t('mean_delta_e', lang),
+        'value': f"{mean_de00:.2f}",
+        'evaluation': de_eval,
+        'recommendation': de_rec,
+        'level': de_level,
+    })
+
+    if reg_stats and len(reg_stats) > 1:
+        import numpy as np
+        all_de = [x['de00'] for x in reg_stats]
+        std_dev = float(np.std(all_de))
+        std_eval, std_rec, std_level = _neutral_consistency_text(std_dev, pass_thr, lang)
+        findings.append({
+            'metric': _t('consistency', lang),
+            'value': f"{std_dev:.2f}",
+            'evaluation': std_eval,
+            'recommendation': std_rec,
+            'level': std_level,
+        })
+
+    csi_metric = 'CSI (Full-image \u0394E2000)' if lang == 'en' else 'CSI (Tam g\u00f6r\u00fcnt\u00fc \u0394E2000)'
+    csi_eval, csi_rec, csi_level = _neutral_csi_text(
+        csi_value, csi_good_thr, csi_warn_thr, pass_thr, cond_thr, lang
+    )
+    findings.append({
+        'metric': csi_metric,
+        'value': f"{csi_value:.2f}",
+        'evaluation': csi_eval,
+        'recommendation': csi_rec,
+        'level': csi_level,
+    })
+
+    legacy_score_mode = csi_good_thr > csi_warn_thr
+    csi_pass_ref = pass_thr if legacy_score_mode else csi_good_thr
+    csi_cond_ref = cond_thr if legacy_score_mode else csi_warn_thr
+
+    if mean_de00 <= pass_thr and csi_value <= csi_pass_ref:
+        conclusion_status = 'pass'
+    elif mean_de00 > cond_thr or csi_value > csi_cond_ref:
+        conclusion_status = 'fail'
+    else:
+        conclusion_status = 'conditional'
+
+    conclusion_text = _summary_text(conclusion_status, lang)
+    return findings, conclusion_text, conclusion_status
+
+    cond_thr = global_threshold * 0.85
+    comp_eval, comp_rec, comp_level = _neutral_pattern_composite_text(
+        composite_score, global_threshold, cond_thr, lang
+    )
+    findings.append({
+        'metric': _t('composite_score', lang),
+        'value': f"{composite_score:.1f}%",
+        'evaluation': comp_eval,
+        'recommendation': comp_rec,
+        'level': comp_level,
+    })
+
+    if structural_results and 'similarity_score' in structural_results:
+        ss = float(structural_results['similarity_score'])
+        struct_eval, struct_rec, struct_level = _neutral_structural_text(ss, lang)
+        findings.append({
+            'metric': _t('structural_match', lang),
+            'value': f"{ss:.1f}%",
+            'evaluation': struct_eval,
+            'recommendation': struct_rec,
+            'level': struct_level,
+        })
+
+    if scores:
+        worst_method = min(scores, key=scores.get)
+        worst_score = float(scores[worst_method])
+        method_thr = thresholds.get(worst_method, {}) if isinstance(thresholds, dict) else {}
+        method_pass = float(method_thr.get('pass', global_threshold))
+        if worst_score < method_pass:
+            pass_txt = _fmt_num(method_pass, 1)
+            if lang == 'en':
+                worst_eval = f"This method is below its configured pass threshold (\u2265 {pass_txt}%)."
+                worst_rec = "This metric is the primary limiting factor in the current assessment."
+            else:
+                worst_eval = f"Bu y\u00f6ntem yap\u0131land\u0131r\u0131lm\u0131\u015f ge\u00e7i\u015f e\u015fi\u011finin alt\u0131ndad\u0131r (\u2265 {pass_txt}%)."
+                worst_rec = "Bu metrik mevcut de\u011ferlendirmedeki temel s\u0131n\u0131rlay\u0131c\u0131 fakt\u00f6rd\u00fcr."
+            findings.append({
+                'metric': _t('worst_metric', lang) + f": {_pattern_method_label(worst_method, lang)}",
+                'value': f"{worst_score:.1f}%",
+                'evaluation': worst_eval,
+                'recommendation': worst_rec,
+                'level': 'poor',
+            })
+
+    if composite_score >= global_threshold:
+        conclusion_status = 'pass'
+    elif composite_score >= cond_thr:
+        conclusion_status = 'conditional'
+    else:
+        conclusion_status = 'fail'
+
+    conclusion_text = _summary_text(conclusion_status, lang)
+    return findings, conclusion_text, conclusion_status
+
+    de_eval, de_rec, de_level = _neutral_color_deltae_text(mean_de00, pass_thr, cond_thr, lang)
+    findings.append({
+        'metric': _t('mean_delta_e', lang),
+        'value': f"{mean_de00:.2f}",
+        'evaluation': de_eval,
+        'recommendation': de_rec,
+        'level': de_level,
+    })
+
+    if reg_stats and len(reg_stats) > 1:
+        import numpy as np
+        all_de = [x['de00'] for x in reg_stats]
+        std_dev = float(np.std(all_de))
+        std_eval, std_rec, std_level = _neutral_consistency_text(std_dev, pass_thr, lang)
+        findings.append({
+            'metric': _t('consistency', lang),
+            'value': f"{std_dev:.2f}",
+            'evaluation': std_eval,
+            'recommendation': std_rec,
+            'level': std_level,
+        })
+
+    csi_metric = 'CSI (Full-image \u0394E2000)' if lang == 'en' else 'CSI (Tam g\u00f6r\u00fcnt\u00fc \u0394E2000)'
+    csi_eval, csi_rec, csi_level = _neutral_csi_text(
+        csi_value, csi_good_thr, csi_warn_thr, pass_thr, cond_thr, lang
+    )
+    findings.append({
+        'metric': csi_metric,
+        'value': f"{csi_value:.2f}",
+        'evaluation': csi_eval,
+        'recommendation': csi_rec,
+        'level': csi_level,
+    })
+
+    legacy_score_mode = csi_good_thr > csi_warn_thr
+    csi_pass_ref = pass_thr if legacy_score_mode else csi_good_thr
+    csi_cond_ref = cond_thr if legacy_score_mode else csi_warn_thr
+
+    if mean_de00 <= pass_thr and csi_value <= csi_pass_ref:
+        conclusion_status = 'pass'
+    elif mean_de00 > cond_thr or csi_value > csi_cond_ref:
+        conclusion_status = 'fail'
+    else:
+        conclusion_status = 'conditional'
+
+    conclusion_text = _summary_text(conclusion_status, lang)
+    return findings, conclusion_text, conclusion_status
 
     # ── 1. Mean Delta E ────────────────────────────────────────────────────
     pos = _relative_position(mean_de00, pass_thr, cond_thr, higher_is_better=False)
@@ -540,6 +964,60 @@ def generate_pattern_recommendations(composite_score, scores, structural_results
     """
     findings = []
 
+    cond_thr = global_threshold * 0.85
+    comp_eval, comp_rec, comp_level = _neutral_pattern_composite_text(
+        composite_score, global_threshold, cond_thr, lang
+    )
+    findings.append({
+        'metric': _t('composite_score', lang),
+        'value': f"{composite_score:.1f}%",
+        'evaluation': comp_eval,
+        'recommendation': comp_rec,
+        'level': comp_level,
+    })
+
+    if structural_results and 'similarity_score' in structural_results:
+        ss = float(structural_results['similarity_score'])
+        struct_eval, struct_rec, struct_level = _neutral_structural_text(ss, lang)
+        findings.append({
+            'metric': _t('structural_match', lang),
+            'value': f"{ss:.1f}%",
+            'evaluation': struct_eval,
+            'recommendation': struct_rec,
+            'level': struct_level,
+        })
+
+    if scores:
+        worst_method = min(scores, key=scores.get)
+        worst_score = float(scores[worst_method])
+        method_thr = thresholds.get(worst_method, {}) if isinstance(thresholds, dict) else {}
+        method_pass = float(method_thr.get('pass', global_threshold))
+        if worst_score < method_pass:
+            pass_txt = _fmt_num(method_pass, 1)
+            if lang == 'en':
+                worst_eval = f"This method is below its configured pass threshold (\u2265 {pass_txt}%)."
+                worst_rec = "This metric is the primary limiting factor in the current assessment."
+            else:
+                worst_eval = f"Bu y\u00f6ntem yap\u0131land\u0131r\u0131lm\u0131\u015f ge\u00e7i\u015f e\u015fi\u011finin alt\u0131ndad\u0131r (\u2265 {pass_txt}%)."
+                worst_rec = "Bu metrik mevcut de\u011ferlendirmedeki temel s\u0131n\u0131rlay\u0131c\u0131 fakt\u00f6rd\u00fcr."
+            findings.append({
+                'metric': _t('worst_metric', lang) + f": {_pattern_method_label(worst_method, lang)}",
+                'value': f"{worst_score:.1f}%",
+                'evaluation': worst_eval,
+                'recommendation': worst_rec,
+                'level': 'poor',
+            })
+
+    if composite_score >= global_threshold:
+        conclusion_status = 'pass'
+    elif composite_score >= cond_thr:
+        conclusion_status = 'conditional'
+    else:
+        conclusion_status = 'fail'
+
+    conclusion_text = _summary_text(conclusion_status, lang)
+    return findings, conclusion_text, conclusion_status
+
     # ── 1. Composite Score ─────────────────────────────────────────────────
     cond_thr = global_threshold * 0.85
     comp_pos = _relative_position(composite_score, global_threshold, cond_thr, higher_is_better=True)
@@ -584,7 +1062,7 @@ def generate_pattern_recommendations(composite_score, scores, structural_results
 
         if worst_score < method_pass:
             findings.append({
-                'metric': _t('worst_metric', lang) + f": {worst_method}",
+                'metric': _t('worst_metric', lang) + f": {_pattern_method_label(worst_method, lang)}",
                 'value': f"{worst_score:.1f}%",
                 'evaluation': _t('worst_below_pass', lang),
                 'recommendation': _t('worst_rec', lang),

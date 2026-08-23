@@ -5468,6 +5468,192 @@ body {
     transition: width 0.3s ease;
 }
 
+/* ═══ Coordinate Entry Block ═══ */
+.coord-entry-block {
+    margin-top: 14px;
+    padding: 14px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+}
+
+.coord-entry-header {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #334155;
+    margin-bottom: 10px;
+}
+.coord-entry-header svg { color: #6366f1; flex-shrink: 0; }
+
+.coord-entry-form {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+}
+
+.coord-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    flex: 1;
+}
+.coord-input-group label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+.coord-input {
+    width: 100%;
+    padding: 7px 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    background: white;
+    color: #1e293b;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    -moz-appearance: textfield;
+}
+.coord-input::-webkit-inner-spin-button,
+.coord-input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.coord-input:focus {
+    outline: none;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.coord-add-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 7px 14px;
+    background: linear-gradient(135deg, #6366f1, #818cf8);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+.coord-add-btn:hover {
+    background: linear-gradient(135deg, #4f46e5, #6366f1);
+    box-shadow: 0 3px 10px rgba(99, 102, 241, 0.3);
+    transform: translateY(-1px);
+}
+
+.coord-feedback {
+    font-size: 0.75rem;
+    min-height: 18px;
+    padding: 2px 0;
+    transition: color 0.2s;
+}
+.coord-feedback.error { color: #ef4444; }
+.coord-feedback.success { color: #22c55e; }
+.coord-feedback.warn { color: #f59e0b; }
+
+.coord-points-list-wrapper {
+    margin-top: 10px;
+}
+
+.coord-points-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+}
+.coord-points-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+.coord-clear-btn {
+    background: none;
+    border: none;
+    font-size: 0.72rem;
+    color: #ef4444;
+    cursor: pointer;
+    font-weight: 500;
+    padding: 2px 6px;
+    border-radius: 4px;
+    transition: background 0.15s;
+}
+.coord-clear-btn:hover { background: rgba(239, 68, 68, 0.08); }
+
+.coord-points-list {
+    max-height: 140px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.coord-empty-state {
+    font-size: 0.78rem;
+    color: #94a3b8;
+    font-style: italic;
+    padding: 8px 0;
+    text-align: center;
+}
+
+.coord-point-chip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 5px 10px;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    color: #334155;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+.coord-point-chip:hover {
+    border-color: #c7d2fe;
+    box-shadow: 0 1px 4px rgba(99, 102, 241, 0.08);
+}
+.coord-point-chip .coord-chip-label {
+    font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+    font-size: 0.78rem;
+    color: #475569;
+}
+.coord-point-chip .coord-chip-idx {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #6366f1;
+    color: white;
+    font-size: 0.65rem;
+    font-weight: 700;
+    margin-right: 8px;
+    flex-shrink: 0;
+}
+.coord-point-chip .coord-chip-remove {
+    background: none;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    padding: 2px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    transition: color 0.15s, background 0.15s;
+}
+.coord-point-chip .coord-chip-remove:hover {
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.08);
+}
+
 /* Point Selector Back Button */
 .point-selector-back-btn {
     display: flex;
@@ -6423,4 +6609,356 @@ body {
     font-weight: 500;
     color: #334155;
     line-height: 1.5;
+}
+
+/* Scientific parameter notation (G_e, F_e, G'_e, F'_e, Y_e, A_b) */
+.sci-param {
+    display: inline-block;
+    font-family: 'Cambria Math', 'Latin Modern Math', 'STIX Two Math', Georgia, 'Times New Roman', serif;
+    font-style: italic;
+    font-weight: 500;
+    opacity: 0.72;
+    letter-spacing: 0.01em;
+    margin-left: 4px;
+    white-space: nowrap;
+    font-size: 0.92em;
+}
+.sci-param sub {
+    font-size: 0.72em;
+    vertical-align: -0.15em;
+    font-style: italic;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   IMPORT OPTIONS (dual: computer / camera)
+   ══════════════════════════════════════════════════════════════════════════ */
+.import-options {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+.import-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    border: 1px solid #d0d4da;
+    border-radius: 8px;
+    background: #fff;
+    color: #3a3f47;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+.import-btn:hover {
+    background: #f0f4ff;
+    border-color: #7c93c4;
+    color: #2a5298;
+}
+.import-btn-camera {
+    border-color: #c4d0e4;
+    background: #f5f8ff;
+}
+.import-btn-camera:hover {
+    background: #e8eeff;
+    border-color: #6b85c2;
+}
+.import-btn svg {
+    flex-shrink: 0;
+    opacity: 0.7;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   CAMERA CAPTURE STUDIO MODAL
+   ══════════════════════════════════════════════════════════════════════════ */
+.cam-studio-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    background: rgba(10,15,30,0.7);
+    backdrop-filter: blur(6px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+.cam-studio-overlay.active {
+    display: flex;
+}
+.cam-studio-modal {
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+    width: 100%;
+    max-width: 780px;
+    max-height: 92vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: camSlideIn 0.3s ease;
+}
+@keyframes camSlideIn {
+    from { opacity: 0; transform: translateY(20px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.cam-studio-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    background: linear-gradient(135deg, #2a3a5c, #3a5a8c);
+    color: #fff;
+    flex-shrink: 0;
+}
+.cam-studio-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 15px;
+    font-weight: 600;
+}
+.cam-target-badge {
+    font-size: 11px;
+    padding: 2px 10px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.2);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 500;
+}
+.cam-studio-controls-top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.cam-device-select {
+    padding: 5px 10px;
+    border-radius: 6px;
+    border: 1px solid rgba(255,255,255,0.3);
+    background: rgba(255,255,255,0.15);
+    color: #fff;
+    font-size: 12px;
+    cursor: pointer;
+    max-width: 200px;
+}
+.cam-device-select option {
+    background: #2a3a5c;
+    color: #fff;
+}
+.cam-btn-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    border: 1px solid rgba(255,255,255,0.25);
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.cam-btn-icon:hover {
+    background: rgba(255,255,255,0.25);
+}
+.cam-btn-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255,255,255,0.15);
+    color: #fff;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.cam-btn-close:hover {
+    background: rgba(255,80,80,0.5);
+}
+.cam-studio-body {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    background: #0d1117;
+}
+.cam-preview-area {
+    position: relative;
+    flex: 1;
+    min-height: 320px;
+    max-height: 480px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background: #0d1117;
+}
+.cam-status-msg {
+    position: absolute;
+    color: #8b949e;
+    font-size: 14px;
+    text-align: center;
+    z-index: 1;
+    padding: 20px;
+}
+#camVideo {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    z-index: 2;
+    display: none;
+}
+#camVideo.active {
+    display: block;
+}
+#camVideo.mirrored {
+    transform: scaleX(-1);
+}
+.cam-captured-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    z-index: 2;
+}
+.cam-crop-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    background: rgba(0,0,0,0.4);
+    cursor: crosshair;
+}
+.cam-crop-box {
+    position: absolute;
+    border: 2px solid #4a9eff;
+    background: transparent;
+    box-shadow: 0 0 0 9999px rgba(0,0,0,0.45);
+    min-width: 40px;
+    min-height: 40px;
+    cursor: move;
+}
+.cam-crop-handle {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background: #fff;
+    border: 2px solid #4a9eff;
+    border-radius: 2px;
+}
+.cam-crop-nw { top: -6px; left: -6px; cursor: nw-resize; }
+.cam-crop-ne { top: -6px; right: -6px; cursor: ne-resize; }
+.cam-crop-sw { bottom: -6px; left: -6px; cursor: sw-resize; }
+.cam-crop-se { bottom: -6px; right: -6px; cursor: se-resize; }
+.cam-adjust-bar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 10px 20px;
+    background: #161b22;
+    border-top: 1px solid #30363d;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+}
+.cam-adjust-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.cam-adj-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 6px;
+    border: 1px solid #30363d;
+    background: #21262d;
+    color: #c9d1d9;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+.cam-adj-btn:hover {
+    background: #30363d;
+    border-color: #4a9eff;
+    color: #fff;
+}
+.cam-sliders {
+    flex: 1;
+    gap: 12px;
+}
+.cam-slider-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #8b949e;
+    font-size: 11px;
+    white-space: nowrap;
+}
+.cam-slider {
+    width: 100px;
+    accent-color: #4a9eff;
+    cursor: pointer;
+}
+.cam-studio-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    background: #f6f8fa;
+    border-top: 1px solid #d8dee4;
+    flex-shrink: 0;
+}
+.cam-footer-left,
+.cam-footer-center,
+.cam-footer-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.cam-footer-center {
+    justify-content: center;
+}
+.cam-btn {
+    padding: 8px 20px;
+    border-radius: 8px;
+    border: 1px solid #d0d7de;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.cam-btn-secondary {
+    background: #fff;
+    color: #57606a;
+}
+.cam-btn-secondary:hover {
+    background: #f0f0f2;
+    border-color: #bbb;
+}
+.cam-btn-capture {
+    background: linear-gradient(135deg, #e53935, #c62828);
+    color: #fff;
+    border: none;
+    padding: 10px 32px;
+    border-radius: 24px;
+    font-size: 14px;
+    box-shadow: 0 3px 12px rgba(229,57,53,0.35);
+}
+.cam-btn-capture:hover {
+    background: linear-gradient(135deg, #c62828, #b71c1c);
+    box-shadow: 0 4px 16px rgba(229,57,53,0.5);
+}
+.cam-btn-primary {
+    background: linear-gradient(135deg, #2a5298, #1e3a6e);
+    color: #fff;
+    border: none;
+}
+.cam-btn-primary:hover {
+    background: linear-gradient(135deg, #1e3a6e, #152a54);
 }

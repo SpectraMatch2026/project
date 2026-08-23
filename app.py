@@ -8,7 +8,7 @@ To keep the WSGI import fast, we *lazy-import* heavy dependencies inside the
 request handler(s).
 """
 
-from flask import Flask, render_template, request, send_file, jsonify
+from flask import Flask, render_template, request, send_file, jsonify, redirect, abort
 import os
 import time
 import threading
@@ -182,9 +182,141 @@ def download_desktop_installer():
     # 2. Redirect to env-var URL or default GitHub Release
     release_url = os.environ.get(
         'DESKTOP_INSTALLER_URL',
-        'https://github.com/algamel98/SPECTRAMATCHPAU/releases/download/v3.0.0/SpectraMatch_Setup_3.0.0.exe'
+        'https://github.com/SpectraMatch2026/3.0.0/raw/main/static/downloads/SpectraMatch_Setup_3.0.0.exe'
     )
     return redirect(release_url)
+
+
+@app.route("/datasheets")
+@app.route("/datasheets/")
+def datasheets_page():
+    return render_template("datasheets.html")
+
+
+@app.route("/datasheetEN.pdf")
+def datasheet_en_root():
+    path = os.path.join(app.static_folder, "DataSheets", "Datasheet_EN.pdf")
+    if not os.path.isfile(path):
+        abort(404)
+    return send_file(path, mimetype="application/pdf")
+
+
+@app.route("/datasheetTR.pdf")
+def datasheet_tr_root():
+    path = os.path.join(app.static_folder, "DataSheets", "Datasheet_TR.pdf")
+    if not os.path.isfile(path):
+        abort(404)
+    return send_file(path, mimetype="application/pdf")
+
+
+SAMPLE_REPORT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ThesisReprots PDFs")
+SAMPLE_REPORT_FILES = {
+    "Full_Report.pdf": {
+        "slug": "fullreport",
+        "download": "Full_Report.pdf",
+        "title_en": "Full report",
+        "title_tr": "Tam analiz raporu",
+        "meta": "SpectraMatch full PDF report with sample output.",
+    },
+    "Color_Report.pdf": {
+        "slug": "colorreport",
+        "download": "Color_Report.pdf",
+        "title_en": "Color report",
+        "title_tr": "Renk analiz raporu",
+        "meta": "SpectraMatch color PDF report with sample output.",
+    },
+    "Pattern_Report.pdf": {
+        "slug": "patternreport",
+        "download": "Pattern_Report.pdf",
+        "title_en": "Pattern report",
+        "title_tr": "Desen analiz raporu",
+        "meta": "SpectraMatch pattern PDF report with sample output.",
+    },
+    "Settings_Receipt.pdf": {
+        "slug": "settingsreport",
+        "download": "Settings_Receipt.pdf",
+        "title_en": "Settings receipt",
+        "title_tr": "Ayarlar ozeti",
+        "meta": "SpectraMatch settings receipt PDF with sample output.",
+    },
+}
+
+
+def _sample_report_path(filename):
+    safe_name = os.path.basename(filename)
+    if safe_name not in SAMPLE_REPORT_FILES:
+        abort(404)
+    path = os.path.join(SAMPLE_REPORT_DIR, safe_name)
+    if not os.path.isfile(path):
+        abort(404)
+    return path
+
+
+def _render_sample_report_viewer(filename):
+    template_path = os.path.join(app.template_folder, "report_viewer.html")
+    if not os.path.isfile(template_path):
+        abort(404)
+    spec = SAMPLE_REPORT_FILES[filename]
+    with open(template_path, encoding="utf-8") as f:
+        html = f.read()
+    return (
+        html.replace("__META_DESC__", spec["meta"])
+        .replace("__TITLE_EN__", spec["title_en"])
+        .replace("__TITLE_TR__", spec["title_tr"])
+        .replace("__PDF_FILE__", filename)
+        .replace("__DOWNLOAD_NAME__", spec["download"])
+    )
+
+
+@app.route("/reports")
+@app.route("/reports/")
+def reports_hub_page():
+    return render_template("reports_hub.html")
+
+
+@app.route("/fullreport")
+@app.route("/fullreport/")
+def full_report_viewer():
+    return _render_sample_report_viewer("Full_Report.pdf")
+
+
+@app.route("/colorreport")
+@app.route("/colorreport/")
+def color_report_viewer():
+    return _render_sample_report_viewer("Color_Report.pdf")
+
+
+@app.route("/patternreport")
+@app.route("/patternreport/")
+def pattern_report_viewer():
+    return _render_sample_report_viewer("Pattern_Report.pdf")
+
+
+@app.route("/settingsreport")
+@app.route("/settingsreport/")
+def settings_report_viewer():
+    return _render_sample_report_viewer("Settings_Receipt.pdf")
+
+
+@app.route("/Full_Report.pdf")
+def sample_full_report_pdf():
+    return send_file(_sample_report_path("Full_Report.pdf"), mimetype="application/pdf")
+
+
+@app.route("/Color_Report.pdf")
+def sample_color_report_pdf():
+    return send_file(_sample_report_path("Color_Report.pdf"), mimetype="application/pdf")
+
+
+@app.route("/Pattern_Report.pdf")
+def sample_pattern_report_pdf():
+    return send_file(_sample_report_path("Pattern_Report.pdf"), mimetype="application/pdf")
+
+
+@app.route("/Settings_Receipt.pdf")
+def sample_settings_receipt_pdf():
+    return send_file(_sample_report_path("Settings_Receipt.pdf"), mimetype="application/pdf")
+
 
 @app.route('/api/alignment/modes', methods=['GET'])
 def alignment_modes():
@@ -425,6 +557,11 @@ def analyze():
         ref_img_proc = None
         if not single_image_mode:
             ref_img_proc = crop_image(ref_img, region_data)
+            ref_img_receipt_base = ref_img_proc.copy()
+            sample_img_receipt_base = sample_img_proc.copy()
+        else:
+            ref_img_receipt_base = None
+            sample_img_receipt_base = sample_img_proc.copy()
         
         # Image alignment preprocessing
         alignment_mode = settings.get('alignment_mode', 'direct')
@@ -446,6 +583,7 @@ def analyze():
                 print(f"Alignment preprocessing error: {e}")
                 import traceback
                 traceback.print_exc()
+        aligned_sample_receipt = sample_img_proc.copy() if (not single_image_mode and alignment_metrics.get('applied')) else None
 
         # Paths for temp PDFs
         session_id = str(uuid.uuid4())
@@ -480,9 +618,11 @@ def analyze():
             # Settings Receipt
             receipt_pdf = os.path.join(temp_dir, f"{session_id}_receipt.pdf")
             from modules.ReportUtils import numpy_to_rl # Use shared
+            from modules.ReportTranslations import get_translator
             
             rl_sample = numpy_to_rl(sample_img_proc, max_w=200, max_h=200)
-            processed_imgs_for_receipt = [("Sample", rl_sample)]
+            report_tr = get_translator(settings.get('report_lang', 'en'))
+            processed_imgs_for_receipt = [{'label': report_tr('sample_image'), 'image': rl_sample}]
             
             op_name = settings.get('operator', 'Operator')
             
@@ -533,15 +673,33 @@ def analyze():
             
             # Convert crops to RLImages for receipt
             from modules.ReportUtils import numpy_to_rl, generate_unified_cover
+            from modules.ReportTranslations import get_translator, get_alignment_mode_label
             from pypdf import PdfReader
             
-            rl_ref = numpy_to_rl(ref_img_proc, max_w=200, max_h=200)
-            rl_sample = numpy_to_rl(sample_img_proc, max_w=200, max_h=200)
-            
+            report_lang = settings.get('report_lang', 'en')
+            report_tr = get_translator(report_lang)
+            rl_ref = numpy_to_rl(ref_img_receipt_base, max_w=200, max_h=200)
+            rl_sample_before = numpy_to_rl(sample_img_receipt_base, max_w=200, max_h=200)
             processed_imgs_for_receipt = [
-                ("Reference", rl_ref),
-                ("Sample", rl_sample)
+                {'label': report_tr('reference_image'), 'image': rl_ref},
+                {
+                    'label': report_tr('sample_before_alignment') if alignment_metrics.get('applied') else report_tr('sample_image'),
+                    'image': rl_sample_before,
+                },
             ]
+            if aligned_sample_receipt is not None:
+                alignment_name = get_alignment_mode_label(alignment_mode, report_lang)
+                rl_aligned_sample = numpy_to_rl(aligned_sample_receipt, max_w=200, max_h=200)
+                processed_imgs_for_receipt.append({
+                    'label': f"{report_tr('aligned_sample')} ({alignment_name})",
+                    'image': rl_aligned_sample,
+                    'compact': True,
+                })
+                settings['receipt_alignment_applied'] = True
+                settings['receipt_alignment_name'] = alignment_name
+            else:
+                settings['receipt_alignment_applied'] = False
+                settings['receipt_alignment_name'] = ''
             
             op_name = settings.get('operator', 'Operator')
             c_points = color_results.get('sampled_points', [])
@@ -550,35 +708,37 @@ def analyze():
             color_scoring_method = settings.get('color_scoring_method', 'delta_e')
             mean_de = color_results.get('mean_de00', 0)
             csi_val = color_results.get('csi_value', 0)
-            de_score = max(0, min(100, 100 - (mean_de * 10)))
-            
-            csi_good_thr = float(settings.get('csi_good', 90.0))
-            csi_warn_thr = float(settings.get('csi_warn', 70.0))
+            color_pass_thr = float(settings.get('color_threshold_pass', settings.get('thresholds', {}).get('pass', 2.0)))
+            color_cond_thr = float(settings.get('color_threshold_conditional', settings.get('thresholds', {}).get('conditional', 5.0)))
+            csi_thresholds = settings.get('csi_thresholds', {})
+            if not isinstance(csi_thresholds, dict):
+                csi_thresholds = {}
+            csi_good_thr, csi_warn_thr, _ = ColorUnitBackend.resolve_csi_thresholds(
+                settings, color_pass_thr, color_cond_thr
+            )
+            csi_status = str(
+                color_results.get('csi_details', {}).get('status')
+                or ColorUnitBackend.resolve_deltae_status(csi_val, csi_good_thr, csi_warn_thr)
+            )
+            color_score_format = 'raw_value'
             
             if color_scoring_method == 'csi':
-                color_score = max(0, min(100, csi_val))
-                if color_score >= csi_good_thr:
-                    c_status = 'PASS'
-                elif color_score >= csi_warn_thr:
-                    c_status = 'CONDITIONAL'
-                else:
-                    c_status = 'FAIL'
+                color_score = float(csi_val)
+                color_score_visual_pct = ColorUnitBackend.deltae_to_score(csi_val)
+                c_status = csi_status
                 color_method_label = 'CSI'
             elif color_scoring_method == 'csi2000':
-                color_score = max(0, min(100, (csi_val + de_score) / 2.0))
-                avg_good = csi_good_thr
-                avg_warn = csi_warn_thr
-                if color_score >= avg_good:
-                    c_status = 'PASS'
-                elif color_score >= avg_warn:
-                    c_status = 'CONDITIONAL'
-                else:
-                    c_status = 'FAIL'
+                color_score = float((float(csi_val) + float(mean_de)) / 2.0)
+                csi2000_pass_thr = (color_pass_thr + csi_good_thr) / 2.0
+                csi2000_cond_thr = (color_cond_thr + csi_warn_thr) / 2.0
+                color_score_visual_pct = ColorUnitBackend.deltae_to_score(color_score)
+                c_status = ColorUnitBackend.resolve_deltae_status(color_score, csi2000_pass_thr, csi2000_cond_thr)
                 color_method_label = 'CSI2000'
             else:
-                color_score = de_score
+                color_score = float(mean_de)
+                color_score_visual_pct = ColorUnitBackend.deltae_to_score(mean_de)
                 c_status = color_results.get('overall_status', 'FAIL')
-                color_method_label = 'DeltaEP2000%'
+                color_method_label = 'DELTAE2000'
             
             # Pattern score calculation
             pattern_scoring_method = settings.get('pattern_scoring_method', 'all')
@@ -613,8 +773,9 @@ def analyze():
             
             # Ensure plain Python float (not numpy float32) for JSON serialization
             color_score = float(color_score)
+            color_score_visual_pct = float(color_score_visual_pct)
             pattern_score = float(pattern_score)
-            overall_score = float((color_score + pattern_score) / 2)
+            overall_score = float((color_score_visual_pct + pattern_score) / 2)
             
             # Determine Overall Decision
             
@@ -638,7 +799,9 @@ def analyze():
                 pattern_score=pattern_score,
                 overall_score=overall_score,
                 decision=decision,
-                software_version="3.0.0"
+                software_version="3.0.0",
+                color_method_key=color_scoring_method,
+                pattern_method_key=pattern_scoring_method,
             )
                 
             # 5. Generate Unified Cover and Merge PDFs
@@ -805,7 +968,7 @@ def analyze():
             # Illuminant analysis data
             illuminant_data = []
             try:
-                from modules.ColorUnitBackend import adapt_to_illuminant, xyz_to_lab, deltaE2000, WHITE_POINTS
+                from modules.ColorUnitBackend import adapt_to_illuminant, xyz_to_lab, deltaE2000, WHITE_POINTS, compute_csi_details
                 raw_reg_stats = color_results.get('reg_stats', [])
                 primary_ill = settings.get('primary_illuminant', 'D65')
                 test_illuminants = settings.get('test_illuminants', ['D65', 'D50', 'TL84'])
@@ -832,17 +995,12 @@ def analyze():
                             d00 = deltaE2000(ref_lab_tgt, sam_lab_tgt)
                             ill_de_values.append(d00)
                         mean_ill_de = float(np.mean(ill_de_values)) if ill_de_values else 0.0
-                        ill_csi = max(0.0, min(100.0, 100.0 - (mean_ill_de * 10.0)))
-                    if ill_csi >= 90.0:
-                        ill_status = 'PASS'
-                    elif ill_csi >= 70.0:
-                        ill_status = 'CONDITIONAL'
-                    else:
-                        ill_status = 'FAIL'
+                        ill_csi = float(compute_csi_details(ref_img_proc, sample_img_proc, illuminant=ill_key)['value'])
+                    ill_status = ColorUnitBackend.resolve_deltae_status(ill_csi, csi_good_thr, csi_warn_thr)
                     illuminant_data.append({
                         'illuminant': ill_key,
                         'mean_de00': round(mean_ill_de, 4),
-                        'csi': round(ill_csi, 2),
+                        'csi': round(ill_csi, 4),
                         'status': ill_status,
                     })
             except Exception as e:
@@ -860,8 +1018,6 @@ def analyze():
                 report_lang = settings.get('report_lang', 'en')
                 pass_thr = float(settings.get('color_threshold_pass', settings.get('thresholds', {}).get('pass', 2.0)))
                 cond_thr_val = float(settings.get('color_threshold_conditional', settings.get('thresholds', {}).get('conditional', 5.0)))
-                csi_good_thr = float(settings.get('csi_good', 90.0))
-                csi_warn_thr = float(settings.get('csi_warn', 70.0))
                 color_findings, color_conclusion_text, color_conclusion_status = generate_color_recommendations(
                     mean_de00=mean_de,
                     reg_stats=color_results.get('reg_stats', []),
@@ -995,9 +1151,12 @@ def analyze():
                 'report_time': time_str,
                 'operator': op_name,
                 'mean_de00': round(float(mean_de), 4),
-                'csi_value': round(float(csi_val), 2),
+                'csi_value': round(float(csi_val), 4),
+                'csi_details': color_results.get('csi_details', {}),
                 'color_scoring_method': color_scoring_method,
                 'color_method_label': color_method_label,
+                'color_score_format': color_score_format,
+                'color_score_visual_pct': round(float(color_score_visual_pct), 2),
                 'pattern_scoring_method': pattern_scoring_method,
                 'pattern_method_label': pattern_method_label,
                 'color_status': c_status,

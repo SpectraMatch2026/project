@@ -17,6 +17,7 @@ import time
 import shutil
 import tempfile
 import urllib.request
+import uuid
 
 # ── Ensure parent project is on sys.path ──────────────────────────
 # When frozen by PyInstaller, _MEIPASS holds the temp extraction folder
@@ -52,6 +53,8 @@ class Api:
     def __init__(self, flask_port):
         self._port = flask_port
         self._window = None
+        self._batch_lock = threading.Lock()
+        self._batch_jobs = {}
 
     def set_window(self, win):
         self._window = win
@@ -127,6 +130,76 @@ class Api:
                 'success': False,
                 'error': f'Failed to run thesis tests: {str(e)}'
             }
+
+    def start_batch_thesis_test(self, current_settings=None, current_region_data=None):
+        """Start the 100-sample thesis batch test in a background thread."""
+        job_id = str(uuid.uuid4())
+        with self._batch_lock:
+            self._batch_jobs[job_id] = {
+                'job_id': job_id,
+                'running': True,
+                'success': None,
+                'progress': 0,
+                'status': 'Initializing 100-sample batch thesis test...',
+                'result': None,
+                'error': None,
+            }
+
+        def _update(progress, status):
+            with self._batch_lock:
+                job = self._batch_jobs.get(job_id)
+                if job:
+                    job['progress'] = max(0, min(100, int(progress)))
+                    job['status'] = str(status)
+
+        def _worker():
+            try:
+                from desktop.batch_thesis_testing import run_batch_thesis_test
+                result = run_batch_thesis_test(
+                    PROJECT_DIR,
+                    current_settings or {},
+                    current_region_data or {},
+                    progress_callback=_update,
+                )
+                with self._batch_lock:
+                    job = self._batch_jobs.get(job_id)
+                    if job:
+                        job.update({
+                            'running': False,
+                            'success': True,
+                            'progress': 100,
+                            'status': 'Batch thesis test completed successfully.',
+                            'result': result,
+                            'error': None,
+                        })
+            except Exception as e:
+                import traceback
+                traceback.print_exc()
+                with self._batch_lock:
+                    job = self._batch_jobs.get(job_id)
+                    if job:
+                        job.update({
+                            'running': False,
+                            'success': False,
+                            'status': f'Batch thesis test failed: {str(e)}',
+                            'error': str(e),
+                        })
+
+        threading.Thread(target=_worker, daemon=True).start()
+        return {'success': True, 'job_id': job_id}
+
+    def get_batch_thesis_progress(self, job_id):
+        """Return the current status for a started batch thesis job."""
+        with self._batch_lock:
+            job = self._batch_jobs.get(job_id)
+            if not job:
+                return {
+                    'success': False,
+                    'error': 'Batch job not found',
+                    'running': False,
+                    'progress': 0,
+                }
+            return dict(job)
     
     def delete_thesis_database(self):
         """Delete the entire thesis folder and all its contents.

@@ -54,7 +54,7 @@ TRANSLATIONS = {
         'color_analysis': 'Color Analysis',
         'color_difference': 'Color Difference',
         'delta_e': 'Delta E',
-        'delta_e_2000': 'Delta E 2000',
+        'delta_e_2000': 'ΔE00',
         'color_spaces': 'Color Spaces',
         'rgb_values': 'RGB Values',
         'lab_values': 'Lab* Values',
@@ -65,7 +65,7 @@ TRANSLATIONS = {
         'illuminant': 'Illuminant',
         'illuminant_analysis': 'Illuminant Analysis',
         'primary_illuminant': 'Primary Illuminant',
-        'color_similarity_index': 'Color Similarity Index',
+        'color_similarity_index': 'CSI (Full-image ΔE00)',
         'csi': 'CSI',
         'pass_threshold': 'Pass Threshold',
         'conditional_threshold': 'Conditional Threshold',
@@ -289,19 +289,27 @@ TRANSLATIONS = {
         'color_score': 'Color Score',
         'pattern_score': 'Pattern Score',
         'overall_score': 'Overall Score',
+        'overall_score_note': 'Pattern Score / Color Score',
+        'overall_score_explainer': 'Pattern is shown as a normalized similarity score; color is shown as the selected raw metric.',
         'status_label': 'STATUS',
         'complete': 'COMPLETE',
         'accept': 'ACCEPT',
         'reject': 'REJECT',
         'pending': 'PENDING',
+        'sample_before_alignment': 'Sample Before Alignment',
+        'aligned_sample': 'Aligned Sample',
+        'alignment_technique': 'Alignment Technique',
+        'alignment_direct': 'Direct Pixel',
+        'alignment_ai_smart_match': 'AI SmartMatch',
+        'alignment_bestch': 'BESTCH',
         
         # Settings Labels
         'sampling_mode': 'Sampling Mode',
         'sampling_count': 'Sampling Count',
         'cond_threshold': 'Cond Threshold',
         'global_thresh': 'Global Thresh',
-        'csi_good': 'CSI Good',
-        'csi_warn': 'CSI Warn',
+        'csi_good': 'CSI Pass',
+        'csi_warn': 'CSI Conditional',
         'ssim_pass': 'SSIM Pass',
         'ssim_cond': 'SSIM Cond',
         'grad_pass': 'Grad Pass',
@@ -334,6 +342,13 @@ TRANSLATIONS = {
         'fourier': 'Fourier Analysis',
         'glcm': 'GLCM Texture',
         'histograms': 'Histograms',
+        'exec_summary': 'Executive Summary',
+        'uniform': 'uniform',
+        'grad_diff_sensitivity': 'Gradient Diff Sensitivity',
+        'phase_diff_sensitivity': 'Phase Diff Sensitivity',
+        'grad_bound_sensitivity': 'Gradient Boundary Sensitivity',
+        'phase_bound_sensitivity': 'Phase Boundary Sensitivity',
+        'structural_sensitivity': 'Structural Sensitivity',
         'random': 'random',
         'manual': 'manual',
         'report_language': 'Report Language',
@@ -341,9 +356,9 @@ TRANSLATIONS = {
         'pattern_global_threshold': 'Pattern Global Threshold',
         'general_settings': 'General Settings',
         'color_scoring_method': 'Color Scoring Method',
-        'delta_e_2000': 'Delta E 2000',
-        'csi_method': 'CSI (Color Similarity Index)',
-        'csi2000_method': 'CSI2000 (Average of CSI & \u0394E2000)',
+        'delta_e_2000': 'ΔE00',
+        'csi_method': 'CSI (Full-image ΔE00)',
+        'csi2000_method': 'CSI2000 (Average of CSI & ΔE00)',
         'pattern_scoring_method': 'Pattern Scoring Method',
         'pattern_method_all': 'All (Average)',
         'pattern_method_ssim': 'Structural SSIM',
@@ -404,7 +419,7 @@ TRANSLATIONS = {
         'critical': 'Critical',
         'de_76_label': 'ΔE76 (CIE 1976)',
         'de_94_label': 'ΔE94 (CIE 1994)',
-        'de_2000_label': 'ΔE2000 (CIEDE 2000)',
+        'de_2000_label': 'ΔE00 (CIEDE2000)',
         'decision_metric': 'Decision Metric',
         'informational': 'Informational',
         'lab_thresh_dl': 'ΔL* Threshold',
@@ -492,7 +507,7 @@ TRANSLATIONS = {
         'color_analysis': 'Renk Analizi',
         'color_difference': 'Renk Farkı',
         'delta_e': 'Delta E',
-        'delta_e_2000': 'Delta E 2000',
+        'delta_e_2000': 'ΔE00',
         'color_spaces': 'Renk Uzayları',
         'rgb_values': 'RGB Değerleri',
         'lab_values': 'Lab* Değerleri',
@@ -503,8 +518,8 @@ TRANSLATIONS = {
         'illuminant': 'Aydınlatma (Illuminant)',
         'illuminant_analysis': 'Aydınlatma Analizi',
         'primary_illuminant': 'Birincil Aydınlatma',
-        'color_similarity_index': 'Renk Benzerlik Endeksi (CSI)',
-        'csi': 'RBE',
+        'color_similarity_index': 'CSI (Tam görüntü ΔE00)',
+        'csi': 'CSI',
         'pass_threshold': 'Geçiş Eşiği',
         'conditional_threshold': 'Koşullu Eşik',
         'global_acceptance': 'Genel Kabul',
@@ -530,7 +545,7 @@ TRANSLATIONS = {
         'structural_similarity': 'Yapısal Benzerlik (SSIM)',
         'ssim': 'SSIM',
         'gradient_similarity': 'Gradyan Benzerliği',
-        'phase_correlation': 'Faz Korelasyonu (Phase Correlation)',
+        'phase_correlation': 'Faz Korelasyonu',
         'structural_difference': 'Yapısal Fark',
         'pattern_score': 'Desen Skoru',
         'similarity_score': 'Benzerlik Skoru',
@@ -727,10 +742,18 @@ TRANSLATIONS = {
         'color_score': 'Renk Skoru',
         'pattern_score': 'Desen Skoru',
         'overall_score': 'Genel Skor',
+        'overall_score_note': 'Desen skoru / Renk skoru',
+        'overall_score_explainer': 'Desen normalize edilmiş benzerlik skoru, renk ise seçilen ham metrik olarak gösterilir.',
         'status_label': 'DURUM',
         'complete': 'TAMAMLANDI',
         'accept': 'KABUL',
         'reject': 'RED',
+        'sample_before_alignment': 'Hizalama Öncesi Numune',
+        'aligned_sample': 'Hizalanmış Numune',
+        'alignment_technique': 'Hizalama Tekniği',
+        'alignment_direct': 'Doğrudan Piksel',
+        'alignment_ai_smart_match': 'AI SmartMatch',
+        'alignment_bestch': 'BESTCH',
         'pending': 'BEKLİYOR',
         
         # Settings Labels
@@ -738,8 +761,8 @@ TRANSLATIONS = {
         'sampling_count': 'Örnekleme Sayısı',
         'cond_threshold': 'Koşullu Eşik',
         'global_thresh': 'Genel Eşik',
-        'csi_good': 'RBE İyi',
-        'csi_warn': 'RBE Uyarı',
+        'csi_good': 'CSI Geçiş',
+        'csi_warn': 'CSI Koşullu',
         'ssim_pass': 'SSIM Geçiş',
         'ssim_cond': 'SSIM Koşullu',
         'grad_pass': 'Gradyan Geçiş',
@@ -760,7 +783,7 @@ TRANSLATIONS = {
         'stats': 'İstatistikler',
         'detailed_lab': 'Detaylı Lab',
         'spectral': 'Spektral Veri',
-        'csi_under_heatmap': 'Isı Haritası Altında RBE',
+        'csi_under_heatmap': 'Isı Haritası Altında CSI',
         'recommendations_color': 'Öneriler',
         'ssim': 'SSIM',
         'gradient': 'Gradyan Benzerliği',
@@ -772,6 +795,13 @@ TRANSLATIONS = {
         'fourier': 'Fourier Analizi',
         'glcm': 'GLCM Doku',
         'histograms': 'Histogramlar',
+        'exec_summary': 'Yönetici Özeti',
+        'uniform': 'düzenli',
+        'grad_diff_sensitivity': 'Gradyan Fark Hassasiyeti',
+        'phase_diff_sensitivity': 'Faz Fark Hassasiyeti',
+        'grad_bound_sensitivity': 'Gradyan Sınır Hassasiyeti',
+        'phase_bound_sensitivity': 'Faz Sınır Hassasiyeti',
+        'structural_sensitivity': 'Yapısal Hassasiyet',
         'random': 'rastgele',
         'manual': 'manuel',
         'report_language': 'Rapor Dili',
@@ -779,9 +809,9 @@ TRANSLATIONS = {
         'pattern_global_threshold': 'Desen Genel Eşik',
         'general_settings': 'Genel Ayarlar',
         'color_scoring_method': 'Renk Puanlama Yöntemi',
-        'delta_e_2000': 'Delta E 2000',
-        'csi_method': 'RBE (Renk Benzerlik Endeksi)',
-        'csi2000_method': 'CSI2000 (CSI & \u0394E2000 Ortalaması)',
+        'delta_e_2000': 'ΔE00',
+        'csi_method': 'CSI (Tam görüntü ΔE00)',
+        'csi2000_method': 'CSI2000 (CSI & ΔE00 Ortalaması)',
         'pattern_scoring_method': 'Desen Puanlama Yöntemi',
         'pattern_method_all': 'Tümü (Ortalama)',
         'pattern_method_ssim': 'Yapısal SSIM',
@@ -842,7 +872,7 @@ TRANSLATIONS = {
         'critical': 'Kritik',
         'de_76_label': 'ΔE76 (CIE 1976)',
         'de_94_label': 'ΔE94 (CIE 1994)',
-        'de_2000_label': 'ΔE2000 (CIEDE 2000)',
+        'de_2000_label': 'ΔE00 (CIEDE2000)',
         'decision_metric': 'Karar Metriği',
         'informational': 'Bilgilendirme',
         'lab_thresh_dl': 'ΔL* Eşik Değeri',
@@ -951,6 +981,75 @@ def translate_status(status, lang='en'):
         'tr': {'PASS': 'GEÇTİ', 'FAIL': 'KALDI', 'CONDITIONAL': 'KOŞULLU'}
     }
     return status_map.get(lang, status_map['en']).get(status.upper(), status)
+
+
+def translate_decision(decision, lang='en'):
+    """Translate decision strings used in receipts and summaries."""
+    decision_map = {
+        'en': {
+            'ACCEPT': 'ACCEPT',
+            'REJECT': 'REJECT',
+            'FAIL': 'REJECT',
+            'CONDITIONAL': 'CONDITIONAL',
+            'COMPLETE': 'COMPLETE',
+            'PENDING': 'PENDING',
+        },
+        'tr': {
+            'ACCEPT': 'KABUL',
+            'REJECT': 'RED',
+            'FAIL': 'RED',
+            'CONDITIONAL': 'KOŞULLU',
+            'COMPLETE': 'TAMAMLANDI',
+            'PENDING': 'BEKLİYOR',
+        },
+    }
+    normalized = str(decision or '').upper()
+    return decision_map.get(lang, decision_map['en']).get(normalized, normalized)
+
+
+def format_color_method_label(method, lang='en'):
+    """Return a localized short display label for a color scoring method."""
+    tr = get_translator(lang)
+    normalized = str(method or '').strip().lower().replace(' ', '')
+    mapping = {
+        'delta_e': tr('delta_e_2000'),
+        'deltae2000': tr('delta_e_2000'),
+        'csi': 'CSI',
+        'csi2000': 'CSI2000',
+    }
+    return mapping.get(normalized, str(method or tr('delta_e_2000')))
+
+
+def format_pattern_method_label(method, lang='en'):
+    """Return a localized short display label for a pattern scoring method."""
+    tr = get_translator(lang)
+    normalized = str(method or '').strip().lower()
+    mapping = {
+        'all': tr('pattern_method_all'),
+        'composite(all)': tr('pattern_method_all'),
+        'composite (all)': tr('pattern_method_all'),
+        'structural ssim': tr('pattern_method_ssim'),
+        'ssim': tr('pattern_method_ssim'),
+        'gradient similarity': tr('pattern_method_gradient'),
+        'gradient': tr('pattern_method_gradient'),
+        'phase correlation': tr('pattern_method_phase'),
+        'phase': tr('pattern_method_phase'),
+        'structural match': tr('pattern_method_structural'),
+        'structural': tr('pattern_method_structural'),
+    }
+    return mapping.get(normalized, str(method or tr('pattern_method_all')))
+
+
+def get_alignment_mode_label(mode, lang='en'):
+    """Return a localized alignment mode label for receipts and reports."""
+    tr = get_translator(lang)
+    normalized = str(mode or 'direct').strip().lower()
+    mapping = {
+        'direct': tr('alignment_direct'),
+        'ai_smart_match': tr('alignment_ai_smart_match'),
+        'bestch': tr('alignment_bestch'),
+    }
+    return mapping.get(normalized, normalized)
 
 
 def get_verdict_message(delta_e, lang='en'):

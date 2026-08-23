@@ -2250,7 +2250,7 @@ function displayResults(data) {
         // Update Color Score label based on scoring method
         var colorLabel = document.querySelector('[data-i18n="color.score"]');
         if (colorLabel && data.color_method_label) {
-            colorLabel.textContent = I18n.t('color.score') + ' (' + data.color_method_label + ')';
+            colorLabel.textContent = I18n.t('color.score') + ' (' + _formatColorMethodLabel(data.color_method_label) + ')';
         }
         // Update Pattern Score label based on scoring method
         var patternLabel = document.querySelector('[data-i18n="pattern.score"]');
@@ -2259,7 +2259,7 @@ function displayResults(data) {
         }
 
         // Animate scores with actual values from analysis
-        animateScore('colorScore', 'colorBar', data.color_score || 0);
+        animateScore('colorScore', 'colorBar', data.color_score || 0, _getColorScorePresentation(data));
         animateScore('patternScore', 'patternBar', data.pattern_score || 0);
         animateScore('overallScore', 'overallBar', data.overall_score || 0);
     }
@@ -2284,30 +2284,69 @@ function displayResults(data) {
     buildDetailedResults(data);
 }
 
-function animateScore(valueId, barId, score) {
+function _getColorScorePresentation(data) {
+    var isRawDeltaE = data && data.color_score_format === 'raw_value';
+    var displayValue = Number(data && data.color_score !== undefined ? data.color_score : 0);
+    if (!isFinite(displayValue)) displayValue = 0;
+
+    var visualPct = Number(data && data.color_score_visual_pct !== undefined ? data.color_score_visual_pct : displayValue);
+    if (!isFinite(visualPct)) visualPct = 0;
+    visualPct = Math.max(0, Math.min(100, visualPct));
+
+    var status = String((data && data.color_status) || '').toUpperCase();
+    return {
+        displayValue: displayValue,
+        displayDecimals: isRawDeltaE ? 2 : 1,
+        visualPct: isRawDeltaE ? visualPct : Math.max(0, Math.min(100, displayValue)),
+        barClass: isRawDeltaE ? (status === 'PASS' ? 'success' : (status === 'CONDITIONAL' ? 'warning' : 'danger')) : '',
+        gaugeClass: isRawDeltaE ? (status === 'PASS' ? 'good' : (status === 'CONDITIONAL' ? 'warn' : 'bad')) : ''
+    };
+}
+
+function _formatColorMethodLabel(label) {
+    return label === 'DELTAE2000' ? 'ΔE₀₀' : label;
+}
+
+function animateScore(valueId, barId, score, options) {
+    options = options || {};
     var valueEl = document.getElementById(valueId);
     var barEl = document.getElementById(barId);
+    var displayValue = Number(options.displayValue !== undefined ? options.displayValue : (score || 0));
+    var displayDecimals = options.displayDecimals !== undefined ? options.displayDecimals : 1;
+    var visualPct = Number(options.visualPct !== undefined ? options.visualPct : (score || 0));
+    var barClass = options.barClass || '';
+
+    if (!isFinite(displayValue)) displayValue = 0;
+    if (!isFinite(visualPct)) visualPct = 0;
+    visualPct = Math.max(0, Math.min(100, visualPct));
 
     if (valueEl) {
         var current = 0;
-        var step = Math.max(score / 30, 1);
+        var step = displayValue === 0 ? 0 : Math.max(Math.abs(displayValue) / 30, 1 / Math.pow(10, displayDecimals));
         var interval = setInterval(function () {
             current += step;
-            if (current >= score) {
-                current = score;
+            if (current >= displayValue) {
+                current = displayValue;
                 clearInterval(interval);
             }
-            valueEl.textContent = current.toFixed(1);
+            valueEl.textContent = current.toFixed(displayDecimals);
         }, 25);
+        if (displayValue === 0) valueEl.textContent = displayValue.toFixed(displayDecimals);
     }
 
     if (barEl) {
         setTimeout(function () {
-            barEl.style.width = score + '%';
+            barEl.style.width = visualPct + '%';
             barEl.className = 'bar-fill';
-            if (score >= 70) barEl.classList.add('success');
-            else if (score >= 50) barEl.classList.add('warning');
-            else barEl.classList.add('danger');
+            if (barClass) {
+                barEl.classList.add(barClass);
+            } else if (visualPct >= 70) {
+                barEl.classList.add('success');
+            } else if (visualPct >= 50) {
+                barEl.classList.add('warning');
+            } else {
+                barEl.classList.add('danger');
+            }
         }, 100);
     }
 }
@@ -2339,18 +2378,19 @@ function buildDetailedResults(data) {
 
         /* Score overview row */
         html += '<div class="wrpt-scores-row">';
-        html += _wrptScoreGauge(t('color.score'), data.color_score, data.color_method_label);
+        html += _wrptScoreGauge(t('color.score'), data.color_score, _formatColorMethodLabel(data.color_method_label), _getColorScorePresentation(data));
         html += _wrptScoreGauge(t('pattern.score'), data.pattern_score, data.pattern_method_label);
         html += _wrptScoreGauge(t('overall.score'), data.overall_score, '');
         html += '</div>';
 
         /* Summary metric cards */
         html += '<div class="wrpt-summary-grid">';
-        html += _wrptSummaryCard(_wrptSvg('bar'), t('rpt.color.scoring'), data.color_method_label || 'DeltaEP2000%', '');
+        html += _wrptSummaryCard(_wrptSvg('bar'), t('rpt.color.scoring'), _formatColorMethodLabel(data.color_method_label || 'DELTAE2000'), '');
         html += _wrptSummaryCard(_wrptSvg('grid'), t('rpt.pattern.scoring'), data.pattern_method_label || 'All (Average)', '');
         if (data.csi_value !== undefined) {
-            var csiC = data.csi_value >= 90 ? 'good' : (data.csi_value >= 70 ? 'warn' : 'bad');
-            html += _wrptSummaryCard(_wrptSvg('clock'), t('rpt.csi.color.similarity'), data.csi_value.toFixed(1) + '%', csiC);
+            var csiMeta = data.csi_details || {};
+            var csiC = csiMeta.status === 'PASS' ? 'good' : (csiMeta.status === 'CONDITIONAL' ? 'warn' : 'bad');
+            html += _wrptSummaryCard(_wrptSvg('clock'), t('rpt.csi.color.similarity'), data.csi_value.toFixed(2), csiC);
         }
         if (data.mean_de00 !== undefined) {
             var deC = data.mean_de00 <= 2 ? 'good' : (data.mean_de00 <= 5 ? 'warn' : 'bad');
@@ -2400,14 +2440,18 @@ function buildDetailedResults(data) {
             var cStC = cSt === 'PASS' ? 'good' : (cSt === 'FAIL' ? 'bad' : 'warn');
             html += '<div class="wrpt-kpi"><span class="wrpt-kpi-label">' + t('rpt.mean.de00') + '</span><span class="wrpt-kpi-value">' + data.mean_de00.toFixed(4) + '</span></div>';
             if (data.csi_value !== undefined) {
-                var csi2 = data.csi_value >= 90 ? 'good' : (data.csi_value >= 70 ? 'warn' : 'bad');
-                html += '<div class="wrpt-kpi"><span class="wrpt-kpi-label">CSI</span><span class="wrpt-kpi-value ' + csi2 + '">' + data.csi_value.toFixed(1) + '%</span></div>';
+                var csiMeta2 = data.csi_details || {};
+                var csi2 = csiMeta2.status === 'PASS' ? 'good' : (csiMeta2.status === 'CONDITIONAL' ? 'warn' : 'bad');
+                html += '<div class="wrpt-kpi"><span class="wrpt-kpi-label">CSI</span><span class="wrpt-kpi-value ' + csi2 + '">' + data.csi_value.toFixed(4) + '</span></div>';
             }
-            html += '<div class="wrpt-kpi"><span class="wrpt-kpi-label">' + t('rpt.method') + '</span><span class="wrpt-kpi-value">' + (data.color_method_label || 'DeltaEP2000%') + '</span></div>';
+            html += '<div class="wrpt-kpi"><span class="wrpt-kpi-label">' + t('rpt.method') + '</span><span class="wrpt-kpi-value">' + _formatColorMethodLabel(data.color_method_label || 'DELTAE2000') + '</span></div>';
             html += '<div class="wrpt-kpi"><span class="wrpt-kpi-label">' + t('rpt.status') + '</span><span class="wrpt-status-badge ' + cStC + '">' + cSt + '</span></div>';
         }
         html += '</div>';
-        if (data.color_method_label === 'DeltaEP2000%') {
+        if (data.csi_details && data.csi_details.pixel_count !== undefined) {
+            html += '<div class="wrpt-info-note">&#9432; ' + t('rpt.csi.note') + ' ' + t('rpt.pixel.count') + ': ' + Number(data.csi_details.pixel_count || 0).toLocaleString() + '</div>';
+        }
+        if (data.color_method_label === 'DELTAE2000') {
             html += '<div class="wrpt-info-note">&#9432; ' + t('rpt.deltaep2000.note') + '</div>';
         }
 
@@ -2451,7 +2495,7 @@ function buildDetailedResults(data) {
             html += '<table class="wrpt-table"><thead><tr><th>' + t('rpt.illuminant') + '</th><th>' + t('rpt.mean.de00') + '</th><th>CSI</th><th>' + t('rpt.status') + '</th></tr></thead><tbody>';
             data.illuminant_data.forEach(function(ill) {
                 var iSc = ill.status === 'PASS' ? 'good' : (ill.status === 'FAIL' ? 'bad' : 'warn');
-                html += '<tr><td>' + ill.illuminant + '</td><td>' + ill.mean_de00.toFixed(4) + '</td><td>' + ill.csi.toFixed(2) + '%</td>';
+                html += '<tr><td>' + ill.illuminant + '</td><td>' + ill.mean_de00.toFixed(4) + '</td><td>' + ill.csi.toFixed(4) + '</td>';
                 html += '<td><span class="wrpt-status-badge ' + iSc + '">' + ill.status + '</span></td></tr>';
             });
             html += '</tbody></table></div>';
@@ -2482,28 +2526,27 @@ function buildDetailedResults(data) {
             html += '<div class="wrpt-kpi"><span class="wrpt-kpi-label">' + t('rpt.status') + '</span><span class="wrpt-status-badge ' + pStC + '">' + pSt + '</span></div>';
         }
         var sm2 = data.structural_meta;
-        if (sm2 && sm2.verdict) {
-            var svC = sm2.similarity_score >= 99 ? 'good' : (sm2.similarity_score >= 95 ? 'warn' : 'bad');
-            html += '<div class="wrpt-kpi"><span class="wrpt-kpi-label">' + t('rpt.structural') + '</span><span class="wrpt-kpi-value ' + svC + '">' + sm2.similarity_score.toFixed(1) + '%</span></div>';
-        }
         html += '</div>';
 
-        if (data.pattern_scores) {
+        if (data.pattern_details) {
             html += '<div class="wrpt-section-title">' + t('rpt.individual.method.scores') + '</div>';
-            var ps = data.pattern_scores;
+            var ps = data.pattern_details;
             html += '<div class="wrpt-pattern-grid">';
             for (var k in ps) {
-                var pv = ps[k], pc = pv >= 75 ? 'good' : (pv >= 50 ? 'warn' : 'bad');
-                html += '<div class="wrpt-pattern-card"><div class="wrpt-pattern-name">' + k + '</div><div class="wrpt-pattern-val ' + pc + '">' + pv.toFixed(1) + '%</div><div class="wrpt-mini-bar"><div class="wrpt-mini-fill ' + pc + '" style="width:' + Math.min(100, pv) + '%"></div></div></div>';
+                var detail = ps[k] || {};
+                var pv = detail.normalized_score !== undefined ? detail.normalized_score : 0;
+                var pc = detail.status === 'PASS' ? 'good' : (detail.status === 'CONDITIONAL' ? 'warn' : 'bad');
+                var displayValue = detail.value_format === 'unit_interval'
+                    ? Number(detail.value || 0).toFixed(4)
+                    : Number(detail.value || 0).toFixed(1) + '%';
+                html += '<div class="wrpt-pattern-card"><div class="wrpt-pattern-name">' + k + '</div><div class="wrpt-pattern-val ' + pc + '">' + displayValue + '</div><div class="wrpt-mini-bar"><div class="wrpt-mini-fill ' + pc + '" style="width:' + Math.min(100, pv) + '%"></div></div></div>';
             }
             html += '</div>';
         }
 
-        if (sm2 && sm2.verdict) {
+        if (sm2) {
             html += '<div class="wrpt-section-title">' + t('rpt.structural.difference') + '</div>';
-            html += '<div class="wrpt-stat-row"><span class="wrpt-stat-label">' + t('rpt.similarity.score') + '</span><span class="wrpt-stat-value">' + sm2.similarity_score.toFixed(2) + '%</span></div>';
-            html += '<div class="wrpt-stat-row"><span class="wrpt-stat-label">' + t('rpt.change.percentage') + '</span><span class="wrpt-stat-value">' + (sm2.change_percentage !== undefined ? sm2.change_percentage.toFixed(4) + '%' : '\u2014') + '</span></div>';
-            html += '<div class="wrpt-stat-row"><span class="wrpt-stat-label">' + t('rpt.verdict') + '</span><span class="wrpt-status-badge ' + (sm2.similarity_score >= 99 ? 'good' : (sm2.similarity_score >= 95 ? 'warn' : 'bad')) + '">' + sm2.verdict + '</span></div>';
+            html += '<div class="wrpt-stat-row"><span class="wrpt-stat-label">' + t('rpt.changed.pixels') + '</span><span class="wrpt-stat-value">' + (sm2.changed_pixels !== undefined ? sm2.changed_pixels.toLocaleString() : '\u2014') + '</span></div>';
         }
 
         html += '<div class="wrpt-section-title">' + t('rpt.difference.maps') + '</div>';
@@ -2520,6 +2563,18 @@ function buildDetailedResults(data) {
             {key: 'phase_boundary', title: t('rpt.phase.boundary'), caption: t('rpt.phase.boundary.caption')},
             {key: 'phase_filled', title: t('rpt.phase.filled'), caption: t('rpt.phase.filled.caption')}
         ]);
+
+        var bm = data.boundary_metrics || {};
+        if (bm.gradient || bm.phase) {
+            html += '<table class="wrpt-table"><thead><tr><th>' + t('rpt.boundary.detection') + '</th><th>' + t('rpt.changed.area') + ' (%)</th><th>' + t('rpt.weighted.severity') + ' (%)</th><th>' + t('rpt.detected.regions') + '</th></tr></thead><tbody>';
+            if (bm.gradient) {
+                html += '<tr><td>' + t('rpt.gradient.boundary') + '</td><td>' + bm.gradient.changed_area_pct.toFixed(2) + '%</td><td>' + bm.gradient.weighted_severity.toFixed(2) + '%</td><td>' + bm.gradient.region_count + '</td></tr>';
+            }
+            if (bm.phase) {
+                html += '<tr><td>' + t('rpt.phase.boundary') + '</td><td>' + bm.phase.changed_area_pct.toFixed(2) + '%</td><td>' + bm.phase.weighted_severity.toFixed(2) + '%</td><td>' + bm.phase.region_count + '</td></tr>';
+            }
+            html += '</tbody></table>';
+        }
 
         html += '<div class="wrpt-section-title">' + t('rpt.structural.analysis') + '</div>';
         html += _wrptGallery(imgs, [
@@ -2590,10 +2645,16 @@ function _wrptColStartOpen(id, title, icon) {
 function _wrptColEnd() { return '</div></div>'; }
 
 /* ── Score gauge ── */
-function _wrptScoreGauge(label, score, sublabel) {
-    var s = (score || 0).toFixed(1);
-    var pct = Math.min(100, Math.max(0, score || 0));
-    var cls = pct >= 75 ? 'good' : (pct >= 50 ? 'warn' : 'bad');
+function _wrptScoreGauge(label, score, sublabel, options) {
+    options = options || {};
+    var displayValue = Number(options.displayValue !== undefined ? options.displayValue : (score || 0));
+    var displayDecimals = options.displayDecimals !== undefined ? options.displayDecimals : 1;
+    var pct = Number(options.visualPct !== undefined ? options.visualPct : (score || 0));
+    if (!isFinite(displayValue)) displayValue = 0;
+    if (!isFinite(pct)) pct = 0;
+    var s = displayValue.toFixed(displayDecimals);
+    pct = Math.min(100, Math.max(0, pct));
+    var cls = options.gaugeClass || (pct >= 75 ? 'good' : (pct >= 50 ? 'warn' : 'bad'));
     return '<div class="wrpt-score-gauge"><div class="wrpt-gauge-ring ' + cls + '">' +
         '<svg viewBox="0 0 36 36"><path class="wrpt-gauge-bg" d="M18 2.0845a15.9155 15.9155 0 0 1 0 31.831a15.9155 15.9155 0 0 1 0-31.831" fill="none" stroke="#eee" stroke-width="3"/>' +
         '<path class="wrpt-gauge-fill" d="M18 2.0845a15.9155 15.9155 0 0 1 0 31.831a15.9155 15.9155 0 0 1 0-31.831" fill="none" stroke-width="3" stroke-dasharray="' + pct + ', 100"/></svg>' +
@@ -3102,6 +3163,111 @@ function resetSettings() {
 
 // SPACTRA Studio (v3.0.0)
 
+// ─────────────────────────────────────────────────────────────────────
+// Auto-apply alignment to workspace when the technique dropdown changes.
+// Calls /api/alignment/preview with the current images + region, then
+// swaps the displayed ref/sample previews so points can be placed on
+// the aligned result. Switching back to "direct" restores originals.
+// ─────────────────────────────────────────────────────────────────────
+var _alignmentAutoApply = {
+    inFlight: null,
+    lastMode: null,
+};
+
+function _getWorkspaceImageEls() {
+    return {
+        ref: document.getElementById('refPreview') || document.getElementById('ref_image_preview'),
+        sample: document.getElementById('testPreview')
+                || document.getElementById('samplePreview')
+                || document.getElementById('sample_image_preview'),
+    };
+}
+
+function _restoreOriginalPreviews() {
+    var els = _getWorkspaceImageEls();
+    function _setFromFile(el, file) {
+        if (!el || !file) return;
+        var r = new FileReader();
+        r.onload = function (e) { el.src = e.target.result; el.style.display = ''; };
+        r.readAsDataURL(file);
+    }
+    _setFromFile(els.ref, AppState.refFile);
+    _setFromFile(els.sample, AppState.testFile || AppState.sampleFile);
+}
+
+function applyAlignmentToWorkspace(mode) {
+    mode = mode || 'direct';
+    if (_alignmentAutoApply.lastMode === mode && mode === 'direct') return;
+    _alignmentAutoApply.lastMode = mode;
+
+    if (mode === 'direct') {
+        _restoreOriginalPreviews();
+        return;
+    }
+
+    var refFile = AppState.refFile;
+    var sampleFile = AppState.testFile || AppState.sampleFile;
+    if (!refFile || !sampleFile) return; // need both
+
+    // Build region data — same logic as openAlignmentStudio
+    var regionData = null;
+    if (typeof RegionSelector !== 'undefined' &&
+        typeof RegionSelector.isPlaced === 'function' && RegionSelector.isPlaced() &&
+        !AppState.processFullImage) {
+        var cs = RegionSelector.getCropSettings();
+        if (cs && cs.use_crop) {
+            regionData = {
+                type: cs.crop_shape === 'circle' ? 'circle' : 'rect',
+                x: cs.crop_x, y: cs.crop_y,
+                width: cs.crop_width, height: cs.crop_height,
+                use_crop: true
+            };
+        }
+    }
+
+    var fd = new FormData();
+    fd.append('mode', mode);
+    fd.append('ref_image', refFile, refFile.name || 'ref.png');
+    fd.append('sample_image', sampleFile, sampleFile.name || 'sample.png');
+    fd.append('region_data', JSON.stringify(regionData || {}));
+
+    if (_alignmentAutoApply.inFlight) {
+        try { _alignmentAutoApply.inFlight.abort(); } catch (e) {}
+    }
+    var ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+    _alignmentAutoApply.inFlight = ctrl;
+
+    fetch('/api/alignment/preview', {
+        method: 'POST',
+        body: fd,
+        signal: ctrl ? ctrl.signal : undefined,
+    })
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+        _alignmentAutoApply.inFlight = null;
+        if (!data || !data.success || !data.previews) return;
+        var els = _getWorkspaceImageEls();
+        var p = data.previews;
+        var newRefSrc = p.ref_cropped
+            ? 'data:image/png;base64,' + p.ref_cropped
+            : (p.ref_source ? 'data:image/png;base64,' + p.ref_source : null);
+        var alignedSrc = p.aligned ? 'data:image/png;base64,' + p.aligned : null;
+        if (els.ref && newRefSrc) { els.ref.src = newRefSrc; els.ref.style.display = ''; }
+        if (els.sample && alignedSrc) { els.sample.src = alignedSrc; els.sample.style.display = ''; }
+    })
+    .catch(function () { _alignmentAutoApply.inFlight = null; });
+}
+
+function initAlignmentAutoApply() {
+    var sel = document.getElementById('alignment_mode');
+    if (!sel || sel.dataset.autoApplyBound === '1') return;
+    sel.dataset.autoApplyBound = '1';
+    sel.addEventListener('change', function () {
+        applyAlignmentToWorkspace(this.value);
+    });
+}
+document.addEventListener('DOMContentLoaded', initAlignmentAutoApply);
+
 function openAlignmentStudio() {
     if (typeof AlignmentStudio === 'undefined') {
         console.error('AlignmentStudio module not loaded');
@@ -3255,9 +3421,9 @@ function collectSettings() {
         color_threshold_pass: getNum('color_pass_thresh', 2.0),
         color_threshold_conditional: getNum('color_cond_thresh', 5.0),
         global_threshold_de: getNum('color_global_thresh', 5.0),
+        csi_good: getNum('csi_good_thresh', 2.0),
+        csi_warn: getNum('csi_warn_thresh', 5.0),
         region_count: isSingleMode ? getNum('single_region_count', 5) : getNum('region_count', 5),
-        csi_good: getNum('csi_good', 90.0),
-        csi_warn: getNum('csi_warn', 70.0),
 
         // Illuminant Settings
         primary_illuminant: getVal('primary_illuminant', 'D65'),
@@ -3265,8 +3431,8 @@ function collectSettings() {
 
         // Pattern Unit Tab Inputs
         pattern_scoring_method: getVal('pattern_scoring_method', 'all'),
-        ssim_pass: getNum('ssim_pass', 85.0),
-        ssim_cond: getNum('ssim_cond', 70.0),
+        ssim_pass: getNum('ssim_pass', 0.85),
+        ssim_cond: getNum('ssim_cond', 0.70),
         grad_pass: getNum('grad_pass', 85.0),
         grad_cond: getNum('grad_cond', 70.0),
 
@@ -3275,6 +3441,13 @@ function collectSettings() {
         structural_pass: getNum('structural_pass', 85.0),
         structural_cond: getNum('structural_cond', 70.0),
         global_pattern_threshold: getNum('pattern_global_thresh', 75.0),
+
+        // Diff-map sensitivity (G_e, F_e) and boundary extraction sensitivity (G'_e, F'_e)
+        gradient_diff_sensitivity:     getNum('grad_diff_sens', 7),
+        phase_diff_sensitivity:        getNum('phase_diff_sens', 7),
+        gradient_boundary_sensitivity: getNum('grad_bound_sens', 4),
+        phase_boundary_sensitivity:    getNum('phase_bound_sens', 8),
+        structural_sensitivity:        getNum('structural_sens', 10),
 
         // Sections - Color
         section_color_spaces: getCheck('sec_color_spaces', true),
@@ -3305,15 +3478,15 @@ function collectSettings() {
         thresholds: {
             'pass': getNum('color_pass_thresh', 2.0),
             'conditional': getNum('color_cond_thresh', 5.0),
-            'Structural SSIM': { 'pass': getNum('ssim_pass', 85.0), 'conditional': getNum('ssim_cond', 70.0) },
+            'Structural SSIM': { 'pass': getNum('ssim_pass', 0.85), 'conditional': getNum('ssim_cond', 0.70) },
             'Gradient Similarity': { 'pass': getNum('grad_pass', 85.0), 'conditional': getNum('grad_cond', 70.0) },
 
             'Phase Correlation': { 'pass': getNum('phase_pass', 85.0), 'conditional': getNum('phase_cond', 70.0) },
             'Structural Match': { 'pass': getNum('structural_pass', 85.0), 'conditional': getNum('structural_cond', 70.0) }
         },
         csi_thresholds: {
-            'good': getNum('csi_good', 90.0),
-            'warn': getNum('csi_warn', 70.0)
+            'good': getNum('csi_good_thresh', 2.0),
+            'warn': getNum('csi_warn_thresh', 5.0)
         },
         global_threshold: getNum('pattern_global_thresh', 75.0), // Pattern global
 
@@ -3335,6 +3508,8 @@ function collectSettings() {
             // Sections - Legacy mappings
             'illuminant_analysis': isSingleMode ? false : getCheck('sec_illuminant_analysis', true),
             'recommendations_color': isSingleMode ? getSingleSection('recommendations_color', true) : getCheck('sec_recommendations', true),
+            'exec_summary': isSingleMode ? getSingleSection('exec_summary', true) : getCheck('sec_exec_summary', true),
+            'visual_comparison': isSingleMode ? getSingleSection('visual_comparison', true) : getCheck('sec_visual_comparison', true),
 
             'ssim': getCheck('enable_ssim', true),
             'gradient': getCheck('enable_gradient', true),
@@ -3344,6 +3519,8 @@ function collectSettings() {
             'glcm': getCheck('enable_glcm', true),
             'gradient_boundary': getCheck('enable_grad_bound', true),
             'phase_boundary': getCheck('enable_phase_bound', true),
+            'summary': getCheck('enable_summary', true),
+            'conclusion': getCheck('enable_concl', true),
             'recommendations_pattern': getCheck('enable_rec', true),
         },
 
@@ -4189,6 +4366,157 @@ function clearManualPoints() {
     updateManualPointsStatus();
 }
 
+/* ═══ Coordinate Entry Functions ═══ */
+
+function addCoordPoint(mode) {
+    var isSingle = (mode === 'single');
+    var xEl = document.getElementById(isSingle ? 'coordXSingle' : 'coordX');
+    var yEl = document.getElementById(isSingle ? 'coordYSingle' : 'coordY');
+    var fbEl = document.getElementById(isSingle ? 'coordFeedbackSingle' : 'coordFeedback');
+    if (!xEl || !yEl) return;
+
+    var x = parseInt(xEl.value, 10);
+    var y = parseInt(yEl.value, 10);
+
+    function showFeedback(msgKey, cls) {
+        if (!fbEl) return;
+        fbEl.textContent = I18n.t(msgKey) || msgKey;
+        fbEl.className = 'coord-feedback ' + cls;
+        clearTimeout(fbEl._timer);
+        fbEl._timer = setTimeout(function() { fbEl.textContent = ''; fbEl.className = 'coord-feedback'; }, 3000);
+    }
+
+    if (isNaN(x) || isNaN(y) || x < 0 || y < 0) {
+        showFeedback('coord.invalid', 'error'); return;
+    }
+
+    var dims = calculateMaxDimensions();
+    if (x >= dims.width || y >= dims.height) {
+        showFeedback('coord.invalid', 'error'); return;
+    }
+
+    var targetCount = parseInt(document.getElementById(isSingle ? 'single_region_count' : 'region_count').value, 10) || 5;
+    var pointsArr = isSingle
+        ? (AppState.manualSamplePointsSingle || [])
+        : (AppState.manualSamplePointsColor || []);
+
+    if (pointsArr.length >= targetCount) {
+        showFeedback('coord.limit.reached', 'warn'); return;
+    }
+
+    for (var i = 0; i < pointsArr.length; i++) {
+        if (pointsArr[i].x === x && pointsArr[i].y === y) {
+            showFeedback('coord.duplicate', 'warn'); return;
+        }
+    }
+
+    pointsArr.push({ x: x, y: y, isManual: true });
+    if (isSingle) {
+        AppState.manualSamplePointsSingle = pointsArr;
+        AppState.singleSamplingMode = 'manual';
+    } else {
+        AppState.manualSamplePointsColor = pointsArr;
+        AppState.colorSamplingMode = 'manual';
+    }
+
+    _syncCoordPointsToSelector(isSingle, pointsArr, targetCount);
+    showFeedback('coord.point.added', 'success');
+    xEl.value = '';
+    yEl.value = '';
+    xEl.focus();
+    renderCoordPointsList(isSingle);
+    updateSettingsPanelStatus();
+}
+
+function _syncCoordPointsToSelector(isSingle, pointsArr, targetCount) {
+    PointSelectorState.mode = isSingle ? 'single' : 'color';
+    PointSelectorState.targetCount = targetCount;
+    var existingRandom = PointSelectorState.points.filter(function(p) { return !p.isManual; });
+    var manualPts = pointsArr.map(function(p, idx) {
+        return {
+            x: p.x, y: p.y,
+            pixelX: p.x, pixelY: p.y,
+            displayX: p.x, displayY: p.y,
+            index: idx + 1,
+            isManual: true
+        };
+    });
+    PointSelectorState.points = manualPts.concat(existingRandom);
+    if (isSingle) {
+        PointSelectorState.pointsSingle = PointSelectorState.points.slice();
+    } else {
+        PointSelectorState.pointsColor = PointSelectorState.points.slice();
+    }
+}
+
+function removeCoordPoint(mode, index) {
+    var isSingle = (mode === 'single');
+    var pointsArr = isSingle
+        ? (AppState.manualSamplePointsSingle || [])
+        : (AppState.manualSamplePointsColor || []);
+
+    if (index >= 0 && index < pointsArr.length) {
+        pointsArr.splice(index, 1);
+    }
+    if (isSingle) {
+        AppState.manualSamplePointsSingle = pointsArr;
+        if (pointsArr.length === 0) AppState.singleSamplingMode = 'random';
+    } else {
+        AppState.manualSamplePointsColor = pointsArr;
+        if (pointsArr.length === 0) AppState.colorSamplingMode = 'random';
+    }
+
+    var targetCount = parseInt(document.getElementById(isSingle ? 'single_region_count' : 'region_count').value, 10) || 5;
+    _syncCoordPointsToSelector(isSingle, pointsArr, targetCount);
+    renderCoordPointsList(isSingle);
+    updateSettingsPanelStatus();
+}
+
+function clearCoordPoints(mode) {
+    var isSingle = (mode === 'single');
+    if (isSingle) {
+        AppState.manualSamplePointsSingle = [];
+        AppState.singleSamplingMode = 'random';
+    } else {
+        AppState.manualSamplePointsColor = [];
+        AppState.colorSamplingMode = 'random';
+    }
+    var targetCount = parseInt(document.getElementById(isSingle ? 'single_region_count' : 'region_count').value, 10) || 5;
+    _syncCoordPointsToSelector(isSingle, [], targetCount);
+    renderCoordPointsList(isSingle);
+    updateSettingsPanelStatus();
+}
+
+function renderCoordPointsList(isSingle) {
+    var listEl = document.getElementById(isSingle ? 'coordPointsListSingle' : 'coordPointsList');
+    var clearBtn = document.getElementById(isSingle ? 'coordClearAllSingle' : 'coordClearAll');
+    var pointsArr = isSingle
+        ? (AppState.manualSamplePointsSingle || [])
+        : (AppState.manualSamplePointsColor || []);
+
+    if (!listEl) return;
+
+    if (pointsArr.length === 0) {
+        listEl.innerHTML = '<div class="coord-empty-state">' + (I18n.t('coord.no.points') || 'No coordinate points added yet.') + '</div>';
+        if (clearBtn) clearBtn.style.display = 'none';
+        return;
+    }
+
+    if (clearBtn) clearBtn.style.display = '';
+    var modeStr = isSingle ? "'single'" : "undefined";
+    var html = '';
+    for (var i = 0; i < pointsArr.length; i++) {
+        var p = pointsArr[i];
+        html += '<div class="coord-point-chip">'
+            + '<span><span class="coord-chip-idx">' + (i + 1) + '</span>'
+            + '<span class="coord-chip-label">(' + p.x + ', ' + p.y + ')</span></span>'
+            + '<button class="coord-chip-remove" onclick="removeCoordPoint(' + modeStr + ',' + i + ')" title="Remove">'
+            + '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'
+            + '</button></div>';
+    }
+    listEl.innerHTML = html;
+}
+
 // Settings Modal Logic (Refined)
 
 function switchSettingsTab(tabName) {
@@ -4232,10 +4560,12 @@ function proceedResetSettings() {
     var cp = document.getElementById('color_pass_thresh'); if (cp) cp.value = "2.0";
     var cc = document.getElementById('color_cond_thresh'); if (cc) cc.value = "5.0";
     var cg = document.getElementById('color_global_thresh'); if (cg) cg.value = "5.0";
+    var csg = document.getElementById('csi_good_thresh'); if (csg) csg.value = "2.0";
+    var csw = document.getElementById('csi_warn_thresh'); if (csw) csw.value = "5.0";
     var rc = document.getElementById('region_count'); if (rc) rc.value = "5";
     var src = document.getElementById('single_region_count'); if (src) src.value = "5";
 
-    var colorChecks = ['sec_color_spaces', 'sec_rgb', 'sec_lab', 'sec_xyz', 'sec_cmyk', 'sec_diff_metrics', 'sec_stats', 'sec_detailed_lab', 'sec_visualizations', 'sec_spectral', 'sec_visual_diff', 'sec_recommendations'];
+    var colorChecks = ['sec_color_spaces', 'sec_exec_summary', 'sec_visual_comparison', 'sec_rgb', 'sec_lab', 'sec_xyz', 'sec_cmyk', 'sec_diff_metrics', 'sec_stats', 'sec_detailed_lab', 'sec_visualizations', 'sec_spectral', 'sec_histograms', 'sec_visual_diff', 'sec_illuminant_analysis', 'sec_recommendations'];
     colorChecks.forEach(function (id) {
         var el = document.getElementById(id);
         if (el) el.checked = true;
@@ -4244,8 +4574,6 @@ function proceedResetSettings() {
     var csiCheck = document.getElementById('sec_csi_heatmap');
     if (csiCheck) csiCheck.checked = false;
 
-    var csiGood = document.getElementById('csi_good'); if (csiGood) csiGood.value = "90.0";
-    var csiWarn = document.getElementById('csi_warn'); if (csiWarn) csiWarn.value = "70.0";
 
     // Illuminant
     var primIll = document.getElementById('primary_illuminant'); if (primIll) primIll.value = "D65";
@@ -4256,8 +4584,8 @@ function proceedResetSettings() {
 
     // Pattern
     var psm = document.getElementById('pattern_scoring_method'); if (psm) psm.value = "all";
-    var sp = document.getElementById('ssim_pass'); if (sp) sp.value = "85.0";
-    var sc = document.getElementById('ssim_cond'); if (sc) sc.value = "70.0";
+    var sp = document.getElementById('ssim_pass'); if (sp) sp.value = "0.85";
+    var sc = document.getElementById('ssim_cond'); if (sc) sc.value = "0.70";
     var gp = document.getElementById('grad_pass'); if (gp) gp.value = "85.0";
     var gc = document.getElementById('grad_cond'); if (gc) gc.value = "70.0";
 
@@ -4266,6 +4594,15 @@ function proceedResetSettings() {
     var stp = document.getElementById('structural_pass'); if (stp) stp.value = "85.0";
     var stc = document.getElementById('structural_cond'); if (stc) stc.value = "70.0";
     var pt = document.getElementById('pattern_global_thresh'); if (pt) pt.value = "75.0";
+
+    // Diff sensitivity sliders (G_e, F_e)
+    var gds = document.getElementById('grad_diff_sens'); if (gds) { gds.value = '7'; var gdsv = document.getElementById('grad_diff_sens_val'); if (gdsv) gdsv.textContent = '7'; }
+    var pds = document.getElementById('phase_diff_sens'); if (pds) { pds.value = '7'; var pdsv = document.getElementById('phase_diff_sens_val'); if (pdsv) pdsv.textContent = '7'; }
+    // Boundary extraction sensitivity sliders (G'_e, F'_e)
+    var gbs = document.getElementById('grad_bound_sens'); if (gbs) { gbs.value = '4'; var gbsv = document.getElementById('grad_bound_sens_val'); if (gbsv) gbsv.textContent = '4'; }
+    var pbs = document.getElementById('phase_bound_sens'); if (pbs) { pbs.value = '8'; var pbsv = document.getElementById('phase_bound_sens_val'); if (pbsv) pbsv.textContent = '8'; }
+    // Structural sensitivity slider (Y_e)
+    var ss = document.getElementById('structural_sens'); if (ss) { ss.value = '10'; var ssv = document.getElementById('structural_sens_val'); if (ssv) ssv.textContent = '10'; }
 
     var patternChecks = ['enable_ssim', 'enable_gradient', 'enable_phase', 'enable_grad_bound', 'enable_phase_bound', 'enable_summary', 'enable_concl', 'enable_rec', 'enable_structural', 'enable_fourier', 'enable_glcm'];
     patternChecks.forEach(function (id) {
@@ -4285,6 +4622,12 @@ function proceedResetSettings() {
     AppState.manualSamplePointsColor = [];
     AppState.singleSamplingMode = undefined;
     AppState.colorSamplingMode = undefined;
+    PointSelectorState.points = [];
+    PointSelectorState.pointsSingle = [];
+    PointSelectorState.pointsColor = [];
+    renderCoordPointsList(true);
+    renderCoordPointsList(false);
+    updateSettingsPanelStatus();
 }
 
 
@@ -4308,6 +4651,15 @@ function initSamplingSettings() {
                 }
             });
         }
+    });
+
+    ['coordX', 'coordY'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) el.addEventListener('keydown', function(e) { if (e.key === 'Enter') addCoordPoint(); });
+    });
+    ['coordXSingle', 'coordYSingle'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) el.addEventListener('keydown', function(e) { if (e.key === 'Enter') addCoordPoint('single'); });
     });
 }
 
@@ -4848,3 +5200,491 @@ function initContactPopup() {
         }
     });
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   CAMERA CAPTURE STUDIO
+   ══════════════════════════════════════════════════════════════════════════ */
+var CameraStudio = (function () {
+    var _stream = null;
+    var _target = null; // 'reference' or 'sample'
+    var _mirrored = false;
+    var _rotation = 0;
+    var _flipH = false;
+    var _brightness = 0;
+    var _contrast = 0;
+    var _capturedDataUrl = null;
+    var _cropState = null;
+    var _devices = [];
+    var _statusKey = 'cam.requesting';
+
+    function _tr(key) {
+        return (typeof I18n !== 'undefined' && I18n.t) ? I18n.t(key) : key;
+    }
+
+    function _el(id) { return document.getElementById(id); }
+
+    function _setStatus(key, visible) {
+        var statusEl = _el('camStatusMsg');
+        if (!statusEl) return;
+        if (key) {
+            _statusKey = key;
+            statusEl.textContent = _tr(key);
+        }
+        if (typeof visible !== 'undefined') {
+            statusEl.style.display = visible ? '' : 'none';
+        }
+    }
+
+    function _syncTranslations() {
+        var overlay = _el('camStudioOverlay');
+        if (!overlay || !overlay.classList.contains('active')) return;
+
+        var badge = _el('camTargetBadge');
+        if (badge) {
+            badge.textContent = _target === 'reference' ? _tr('rpt.reference') : _tr('rpt.sample');
+        }
+
+        var statusEl = _el('camStatusMsg');
+        if (statusEl) {
+            _setStatus(_statusKey, statusEl.style.display !== 'none');
+        }
+
+        var sel = _el('camDeviceSelect');
+        if (!sel) return;
+        if (!_devices.length && sel.options.length) {
+            sel.options[0].textContent = _tr('cam.no.cameras');
+            return;
+        }
+        Array.prototype.forEach.call(sel.options, function (opt) {
+            var fallbackIndex = opt.getAttribute('data-fallback-index');
+            if (fallbackIndex) {
+                opt.textContent = _tr('cam.select.camera') + ' ' + fallbackIndex;
+            }
+        });
+    }
+
+    function open(target) {
+        _target = target;
+        _mirrored = false;
+        _rotation = 0;
+        _flipH = false;
+        _brightness = 0;
+        _contrast = 0;
+        _capturedDataUrl = null;
+        _cropState = null;
+
+        var overlay = _el('camStudioOverlay');
+        overlay.classList.add('active');
+
+        var badge = _el('camTargetBadge');
+        badge.textContent = target === 'reference' ? _tr('rpt.reference') : _tr('rpt.sample');
+
+        _statusKey = 'cam.requesting';
+        _setStatus('cam.requesting', true);
+        _el('camVideo').classList.remove('active');
+        _el('camCapturedImg').style.display = 'none';
+        _el('camCropOverlay').style.display = 'none';
+        _el('camAdjustBar').style.display = 'none';
+        _el('camCaptureBtn').style.display = '';
+        _el('camRetakeBtn').style.display = 'none';
+        _el('camUseBtn').style.display = 'none';
+        _el('camBrightness').value = 0;
+        _el('camContrast').value = 0;
+
+        _enumerateAndStart();
+    }
+
+    function close() {
+        _stopStream();
+        _el('camStudioOverlay').classList.remove('active');
+        _capturedDataUrl = null;
+        _cropState = null;
+    }
+
+    function _stopStream() {
+        if (_stream) {
+            _stream.getTracks().forEach(function (t) { t.stop(); });
+            _stream = null;
+        }
+        var v = _el('camVideo');
+        v.srcObject = null;
+        v.classList.remove('active');
+    }
+
+    function _enumerateAndStart() {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            _setStatus('cam.not.supported', true);
+            return;
+        }
+
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(function (stream) {
+                stream.getTracks().forEach(function (t) { t.stop(); });
+                return navigator.mediaDevices.enumerateDevices();
+            })
+            .then(function (devices) {
+                _devices = devices.filter(function (d) { return d.kind === 'videoinput'; });
+                var sel = _el('camDeviceSelect');
+                sel.innerHTML = '';
+                if (_devices.length === 0) {
+                    var o = document.createElement('option');
+                    o.textContent = _tr('cam.no.cameras');
+                    sel.appendChild(o);
+                    _setStatus('cam.no.cameras', true);
+                    return;
+                }
+                _devices.forEach(function (d, i) {
+                    var o = document.createElement('option');
+                    o.value = d.deviceId;
+                    if (d.label) {
+                        o.textContent = d.label;
+                    } else {
+                        o.setAttribute('data-fallback-index', String(i + 1));
+                        o.textContent = _tr('cam.select.camera') + ' ' + (i + 1);
+                    }
+                    sel.appendChild(o);
+                });
+                _startCamera(_devices[0].deviceId);
+            })
+            .catch(function () {
+                _setStatus('cam.permission.denied', true);
+            });
+    }
+
+    function _startCamera(deviceId) {
+        _stopStream();
+        _setStatus('cam.requesting', true);
+
+        var constraints = { video: { deviceId: { exact: deviceId }, width: { ideal: 1920 }, height: { ideal: 1080 } } };
+        navigator.mediaDevices.getUserMedia(constraints)
+            .then(function (stream) {
+                _stream = stream;
+                var v = _el('camVideo');
+                v.srcObject = stream;
+                v.classList.add('active');
+                v.classList.toggle('mirrored', _mirrored);
+                _setStatus('cam.requesting', false);
+            })
+            .catch(function () {
+                _setStatus('cam.permission.denied', true);
+            });
+    }
+
+    function _capture() {
+        var v = _el('camVideo');
+        if (!v.videoWidth) return;
+
+        var c = _el('camCaptureCanvas');
+        c.width = v.videoWidth;
+        c.height = v.videoHeight;
+        var ctx = c.getContext('2d');
+        if (_mirrored) {
+            ctx.translate(c.width, 0);
+            ctx.scale(-1, 1);
+        }
+        ctx.drawImage(v, 0, 0, c.width, c.height);
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+
+        _capturedDataUrl = c.toDataURL('image/png');
+        _stopStream();
+
+        var img = _el('camCapturedImg');
+        img.src = _capturedDataUrl;
+        img.style.display = '';
+
+        _el('camCaptureBtn').style.display = 'none';
+        _el('camRetakeBtn').style.display = '';
+        _el('camUseBtn').style.display = '';
+        _el('camAdjustBar').style.display = 'flex';
+
+        _initCrop();
+    }
+
+    function _retake() {
+        _capturedDataUrl = null;
+        _cropState = null;
+        _rotation = 0;
+        _flipH = false;
+        _brightness = 0;
+        _contrast = 0;
+        _el('camBrightness').value = 0;
+        _el('camContrast').value = 0;
+
+        _el('camCapturedImg').style.display = 'none';
+        _el('camCropOverlay').style.display = 'none';
+        _el('camAdjustBar').style.display = 'none';
+        _el('camCaptureBtn').style.display = '';
+        _el('camRetakeBtn').style.display = 'none';
+        _el('camUseBtn').style.display = 'none';
+
+        var sel = _el('camDeviceSelect');
+        _startCamera(sel.value);
+    }
+
+    function _initCrop() {
+        var overlay = _el('camCropOverlay');
+        var box = _el('camCropBox');
+        var area = _el('camPreviewArea');
+        overlay.style.display = 'block';
+
+        var pad = 30;
+        var aw = area.clientWidth;
+        var ah = area.clientHeight;
+        box.style.left = pad + 'px';
+        box.style.top = pad + 'px';
+        box.style.width = (aw - pad * 2) + 'px';
+        box.style.height = (ah - pad * 2) + 'px';
+
+        _cropState = { dragging: false, resizing: null, sx: 0, sy: 0, ox: 0, oy: 0, ow: 0, oh: 0 };
+
+        box.onmousedown = function (e) {
+            if (e.target.classList.contains('cam-crop-handle')) return;
+            e.preventDefault();
+            _cropState.dragging = true;
+            _cropState.sx = e.clientX;
+            _cropState.sy = e.clientY;
+            _cropState.ox = box.offsetLeft;
+            _cropState.oy = box.offsetTop;
+        };
+
+        var handles = box.querySelectorAll('.cam-crop-handle');
+        handles.forEach(function (h) {
+            h.onmousedown = function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                _cropState.resizing = h.className.split('cam-crop-')[1];
+                _cropState.sx = e.clientX;
+                _cropState.sy = e.clientY;
+                _cropState.ox = box.offsetLeft;
+                _cropState.oy = box.offsetTop;
+                _cropState.ow = box.offsetWidth;
+                _cropState.oh = box.offsetHeight;
+            };
+        });
+
+        document.onmousemove = function (e) {
+            if (!_cropState) return;
+            if (_cropState.dragging) {
+                var dx = e.clientX - _cropState.sx;
+                var dy = e.clientY - _cropState.sy;
+                var nl = Math.max(0, Math.min(_cropState.ox + dx, aw - box.offsetWidth));
+                var nt = Math.max(0, Math.min(_cropState.oy + dy, ah - box.offsetHeight));
+                box.style.left = nl + 'px';
+                box.style.top = nt + 'px';
+            } else if (_cropState.resizing) {
+                var dx2 = e.clientX - _cropState.sx;
+                var dy2 = e.clientY - _cropState.sy;
+                var r = _cropState.resizing;
+                var nw, nh, nl2, nt2;
+                if (r === 'se') {
+                    nw = Math.max(40, _cropState.ow + dx2);
+                    nh = Math.max(40, _cropState.oh + dy2);
+                    box.style.width = Math.min(nw, aw - box.offsetLeft) + 'px';
+                    box.style.height = Math.min(nh, ah - box.offsetTop) + 'px';
+                } else if (r === 'sw') {
+                    nw = Math.max(40, _cropState.ow - dx2);
+                    nl2 = _cropState.ox + dx2;
+                    nh = Math.max(40, _cropState.oh + dy2);
+                    if (nl2 >= 0 && nw >= 40) { box.style.left = nl2 + 'px'; box.style.width = nw + 'px'; }
+                    box.style.height = Math.min(nh, ah - box.offsetTop) + 'px';
+                } else if (r === 'ne') {
+                    nw = Math.max(40, _cropState.ow + dx2);
+                    nh = Math.max(40, _cropState.oh - dy2);
+                    nt2 = _cropState.oy + dy2;
+                    box.style.width = Math.min(nw, aw - box.offsetLeft) + 'px';
+                    if (nt2 >= 0 && nh >= 40) { box.style.top = nt2 + 'px'; box.style.height = nh + 'px'; }
+                } else if (r === 'nw') {
+                    nw = Math.max(40, _cropState.ow - dx2);
+                    nh = Math.max(40, _cropState.oh - dy2);
+                    nl2 = _cropState.ox + dx2;
+                    nt2 = _cropState.oy + dy2;
+                    if (nl2 >= 0 && nw >= 40) { box.style.left = nl2 + 'px'; box.style.width = nw + 'px'; }
+                    if (nt2 >= 0 && nh >= 40) { box.style.top = nt2 + 'px'; box.style.height = nh + 'px'; }
+                }
+            }
+        };
+
+        document.onmouseup = function () {
+            if (_cropState) {
+                _cropState.dragging = false;
+                _cropState.resizing = null;
+            }
+        };
+    }
+
+    function _applyAdjustments(srcDataUrl, cb) {
+        var img = new Image();
+        img.onload = function () {
+            var w = img.naturalWidth;
+            var h = img.naturalHeight;
+            var c = document.createElement('canvas');
+            var ctx = c.getContext('2d');
+
+            var rads = _rotation * Math.PI / 180;
+            var absW = (_rotation % 180 === 0) ? w : h;
+            var absH = (_rotation % 180 === 0) ? h : w;
+            c.width = absW;
+            c.height = absH;
+
+            ctx.translate(absW / 2, absH / 2);
+            ctx.rotate(rads);
+            if (_flipH) ctx.scale(-1, 1);
+            ctx.drawImage(img, -w / 2, -h / 2, w, h);
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+
+            if (_brightness !== 0 || _contrast !== 0) {
+                var imageData = ctx.getImageData(0, 0, c.width, c.height);
+                var d = imageData.data;
+                var bFactor = _brightness * 2.55;
+                var cFactor = (_contrast + 100) / 100;
+                cFactor *= cFactor;
+                for (var i = 0; i < d.length; i += 4) {
+                    for (var ch = 0; ch < 3; ch++) {
+                        var v = d[i + ch] + bFactor;
+                        v = ((v / 255 - 0.5) * cFactor + 0.5) * 255;
+                        d[i + ch] = Math.max(0, Math.min(255, v));
+                    }
+                }
+                ctx.putImageData(imageData, 0, 0);
+            }
+
+            cb(c.toDataURL('image/png'), c.width, c.height);
+        };
+        img.src = srcDataUrl;
+    }
+
+    function _useImage() {
+        if (!_capturedDataUrl) return;
+
+        _applyAdjustments(_capturedDataUrl, function (adjustedUrl, fullW, fullH) {
+            var area = _el('camPreviewArea');
+            var box = _el('camCropBox');
+            var imgEl = _el('camCapturedImg');
+            var imgRect = imgEl.getBoundingClientRect();
+            var areaRect = area.getBoundingClientRect();
+
+            var dispX = imgRect.left - areaRect.left;
+            var dispY = imgRect.top - areaRect.top;
+            var dispW = imgRect.width;
+            var dispH = imgRect.height;
+
+            var bx = box.offsetLeft - dispX;
+            var by = box.offsetTop - dispY;
+            var bw = box.offsetWidth;
+            var bh = box.offsetHeight;
+
+            var scaleX = fullW / dispW;
+            var scaleY = fullH / dispH;
+            var sx = Math.max(0, Math.round(bx * scaleX));
+            var sy = Math.max(0, Math.round(by * scaleY));
+            var sw = Math.min(fullW - sx, Math.round(bw * scaleX));
+            var sh = Math.min(fullH - sy, Math.round(bh * scaleY));
+
+            if (sw < 10 || sh < 10) { sw = fullW; sh = fullH; sx = 0; sy = 0; }
+
+            var cropCanvas = document.createElement('canvas');
+            cropCanvas.width = sw;
+            cropCanvas.height = sh;
+            var cropCtx = cropCanvas.getContext('2d');
+
+            var tmpImg = new Image();
+            tmpImg.onload = function () {
+                cropCtx.drawImage(tmpImg, sx, sy, sw, sh, 0, 0, sw, sh);
+                var finalUrl = cropCanvas.toDataURL('image/png');
+
+                var blob = _dataUrlToBlob(finalUrl);
+                var file = new File([blob], 'camera_capture.png', { type: 'image/png' });
+
+                if (_target === 'reference') {
+                    handleFileUpload(file, 'reference');
+                } else {
+                    handleFileUpload(file, 'sample');
+                }
+
+                close();
+            };
+            tmpImg.src = adjustedUrl;
+        });
+    }
+
+    function _dataUrlToBlob(dataUrl) {
+        var parts = dataUrl.split(',');
+        var mime = parts[0].match(/:(.*?);/)[1];
+        var raw = atob(parts[1]);
+        var arr = new Uint8Array(raw.length);
+        for (var i = 0; i < raw.length; i++) arr[i] = raw.charCodeAt(i);
+        return new Blob([arr], { type: mime });
+    }
+
+    function init() {
+        var closeBtn = _el('camCloseBtn');
+        var cancelBtn = _el('camCancelBtn');
+        var captureBtn = _el('camCaptureBtn');
+        var retakeBtn = _el('camRetakeBtn');
+        var useBtn = _el('camUseBtn');
+        var mirrorBtn = _el('camMirrorBtn');
+        var deviceSel = _el('camDeviceSelect');
+        var overlay = _el('camStudioOverlay');
+
+        if (!overlay) return;
+
+        if (closeBtn) closeBtn.addEventListener('click', close);
+        if (cancelBtn) cancelBtn.addEventListener('click', close);
+        if (captureBtn) captureBtn.addEventListener('click', _capture);
+        if (retakeBtn) retakeBtn.addEventListener('click', _retake);
+        if (useBtn) useBtn.addEventListener('click', _useImage);
+
+        if (mirrorBtn) mirrorBtn.addEventListener('click', function () {
+            _mirrored = !_mirrored;
+            _el('camVideo').classList.toggle('mirrored', _mirrored);
+        });
+
+        if (deviceSel) deviceSel.addEventListener('change', function () {
+            if (this.value) _startCamera(this.value);
+        });
+
+        _el('camRotateLeft').addEventListener('click', function () {
+            _rotation = (_rotation - 90 + 360) % 360;
+            _updateCapturedPreview();
+        });
+        _el('camRotateRight').addEventListener('click', function () {
+            _rotation = (_rotation + 90) % 360;
+            _updateCapturedPreview();
+        });
+        _el('camFlipH').addEventListener('click', function () {
+            _flipH = !_flipH;
+            _updateCapturedPreview();
+        });
+        _el('camBrightness').addEventListener('input', function () {
+            _brightness = parseInt(this.value);
+            _updateCapturedPreview();
+        });
+        _el('camContrast').addEventListener('input', function () {
+            _contrast = parseInt(this.value);
+            _updateCapturedPreview();
+        });
+
+        document.addEventListener('languageChanged', _syncTranslations);
+
+        overlay.addEventListener('click', function (e) {
+            if (e.target === overlay) close();
+        });
+    }
+
+    function _updateCapturedPreview() {
+        if (!_capturedDataUrl) return;
+        _applyAdjustments(_capturedDataUrl, function (url) {
+            _el('camCapturedImg').src = url;
+        });
+    }
+
+    return { open: open, close: close, init: init };
+})();
+
+function openCameraStudio(target) {
+    CameraStudio.open(target);
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    CameraStudio.init();
+});

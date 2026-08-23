@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -139,7 +139,7 @@
 
 
             <!-- Windows Desktop Download Button -->
-            <a class="btn-desktop-download" href="/download/desktop" id="btnDesktopDownload" title="Download SpectraMatch for Windows" onclick="showDownloadFallback(event)">
+            <a class="btn-desktop-download" href="/static/downloads/SpectraMatch_Setup_3.0.0.exe" id="btnDesktopDownload" title="Download SpectraMatch for Windows" onclick="showDownloadFallback(event)">
                 <svg class="windows-icon" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801"/>
                 </svg>
@@ -184,21 +184,21 @@
                             <img class="rtt-thumb" src="/static/READYTOTEST/1.png" alt="Test1">
                             <img class="rtt-thumb" src="/static/READYTOTEST/2.png" alt="Test2">
                         </div>
-                        <span><span data-i18n="rtt.pair">Pair</span> 1 — Test1 + Test2</span>
+                        <span><span data-i18n="rtt.pair">Pair</span> 1 � Test1 + Test2</span>
                     </div>
                     <div class="rtt-item" data-ref="3.png" data-sample="4.png">
                         <div class="rtt-thumbs">
                             <img class="rtt-thumb" src="/static/READYTOTEST/3.png" alt="Test3">
                             <img class="rtt-thumb" src="/static/READYTOTEST/4.png" alt="Test4">
                         </div>
-                        <span><span data-i18n="rtt.pair">Pair</span> 2 — Test3 + Test4</span>
+                        <span><span data-i18n="rtt.pair">Pair</span> 2 � Test3 + Test4</span>
                     </div>
                     <div class="rtt-item" data-ref="5.png" data-sample="6.png">
                         <div class="rtt-thumbs">
                             <img class="rtt-thumb" src="/static/READYTOTEST/5.png" alt="Test5">
                             <img class="rtt-thumb" src="/static/READYTOTEST/6.png" alt="Test6">
                         </div>
-                        <span><span data-i18n="rtt.pair">Pair</span> 3 — Test5 + Test6</span>
+                        <span><span data-i18n="rtt.pair">Pair</span> 3 � Test5 + Test6</span>
                     </div>
                     <div class="rtt-section" data-i18n="rtt.single">Single Image Mode</div>
                     <div class="rtt-item" data-single="1.png"><img class="rtt-thumb" src="/static/READYTOTEST/1.png" alt="Test1"><span>Test1.png</span></div>
@@ -254,7 +254,7 @@
                             </svg>
                             <div class="dropdown-item-info">
                                 <span class="dropdown-item-title" data-i18n="turkish.datasheet">Turkish Datasheet</span>
-                                <span class="dropdown-item-desc">PDF Doküman</span>
+                                <span class="dropdown-item-desc">PDF Dok�man</span>
                             </div>
                         </div>
                         <button class="btn-help" data-help="datasheet" data-type="tr" type="button" title="Learn more">
@@ -289,7 +289,7 @@
                     </div>
                     <div class="lang-dropdown-item" data-lang="tr">
                         <img src="/static/images/tr.svg" alt="Turkish" class="lang-flag">
-                        <span data-i18n="turkish">Türkçe</span>
+                        <span data-i18n="turkish">T�rk�e</span>
                         <svg class="lang-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
                             <polyline points="20 6 9 17 4 12"></polyline>
                         </svg>
@@ -339,16 +339,24 @@
                     </div>
                     <div class="panel-content" id="refPanelContent">
                         <input type="file" id="refInput" accept="image/*" style="display:none;">
-                        <div class="upload-placeholder" id="refPlaceholder"
-                            onclick="document.getElementById('refInput').click()">
-                            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        <div class="upload-placeholder" id="refPlaceholder">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="1.5">
                                 <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
                                 <circle cx="8.5" cy="8.5" r="1.5"></circle>
                                 <polyline points="21 15 16 10 5 21"></polyline>
                             </svg>
                             <span data-i18n="reference.image">Reference Image</span>
-                            <small data-i18n="click.to.upload">Click to upload</small>
+                            <div class="import-options">
+                                <button type="button" class="import-btn import-btn-file" onclick="document.getElementById('refInput').click()">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                                    <span data-i18n="cam.import.computer">Import from Computer</span>
+                                </button>
+                                <button type="button" class="import-btn import-btn-camera" onclick="openCameraStudio('reference')">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                                    <span data-i18n="cam.import.camera">Import from Camera</span>
+                                </button>
+                            </div>
                         </div>
                         <img id="refPreview" class="image-preview" style="display:none;">
                         <div class="shape-overlay region-overlay" id="refOverlay"></div>
@@ -382,16 +390,24 @@
                     </div>
                     <div class="panel-content" id="testPanelContent">
                         <input type="file" id="testInput" accept="image/*" style="display:none;">
-                        <div class="upload-placeholder" id="testPlaceholder"
-                            onclick="document.getElementById('testInput').click()">
-                            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        <div class="upload-placeholder" id="testPlaceholder">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="1.5">
                                 <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
                                 <circle cx="8.5" cy="8.5" r="1.5"></circle>
                                 <polyline points="21 15 16 10 5 21"></polyline>
                             </svg>
                             <span data-i18n="sample.image">Sample Image</span>
-                            <small data-i18n="click.to.upload">Click to upload</small>
+                            <div class="import-options">
+                                <button type="button" class="import-btn import-btn-file" onclick="document.getElementById('testInput').click()">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                                    <span data-i18n="cam.import.computer">Import from Computer</span>
+                                </button>
+                                <button type="button" class="import-btn import-btn-camera" onclick="openCameraStudio('sample')">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                                    <span data-i18n="cam.import.camera">Import from Camera</span>
+                                </button>
+                            </div>
                         </div>
                         <img id="testPreview" class="image-preview" style="display:none;">
                         <div class="shape-overlay region-overlay" id="testOverlay"></div>
@@ -505,9 +521,9 @@
                             <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
                             <line x1="12" y1="17" x2="12.01" y2="17"></line>
                         </svg>
-                        <div class="hint-tooltip" data-i18n-html="region.hint.html">Click on image to selection •
+                        <div class="hint-tooltip" data-i18n-html="region.hint.html">Click on image to selection �
                             Drag to
-                            move • Scroll to resize</div>
+                            move � Scroll to resize</div>
                     </span>
                 </div>
             </div>
@@ -882,7 +898,7 @@
                                     </div>
                                     <div class="report-lang-dropdown-item" data-lang="tr">
                                         <img src="/static/images/tr.svg" alt="Turkish" class="report-lang-flag">
-                                        <span>Türkçe</span>
+                                        <span>T�rk�e</span>
                                         <svg class="lang-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
                                             <polyline points="20 6 9 17 4 12"></polyline>
                                         </svg>
@@ -1099,6 +1115,40 @@
                                         </div>
                                     </div>
                                 </div>
+
+                                <!-- Coordinate Entry (Single Image) -->
+                                <div class="coord-entry-block">
+                                    <div class="coord-entry-header">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                                        <span data-i18n="coord.entry.title">Add Point by Coordinates</span>
+                                    </div>
+                                    <div class="coord-entry-form">
+                                        <div class="coord-input-group">
+                                            <label data-i18n="coord.x">X</label>
+                                            <input type="number" id="coordXSingle" class="coord-input" min="0" placeholder="0">
+                                        </div>
+                                        <div class="coord-input-group">
+                                            <label data-i18n="coord.y">Y</label>
+                                            <input type="number" id="coordYSingle" class="coord-input" min="0" placeholder="0">
+                                        </div>
+                                        <button type="button" class="coord-add-btn" onclick="addCoordPoint('single')">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                            <span data-i18n="coord.add">Add</span>
+                                        </button>
+                                    </div>
+                                    <div class="coord-feedback" id="coordFeedbackSingle"></div>
+                                    <div class="coord-points-list-wrapper">
+                                        <div class="coord-points-header">
+                                            <span class="coord-points-title" data-i18n="coord.added.points">Entered Points</span>
+                                            <button type="button" class="coord-clear-btn" id="coordClearAllSingle" onclick="clearCoordPoints('single')" style="display:none;">
+                                                <span data-i18n="coord.clear.all">Clear All</span>
+                                            </button>
+                                        </div>
+                                        <div class="coord-points-list" id="coordPointsListSingle">
+                                            <div class="coord-empty-state" data-i18n="coord.no.points">No coordinate points added yet.</div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -1128,7 +1178,7 @@
                                 <small data-i18n="scoring.basis.desc">Determines the primary color score</small>
                             </div>
                             <select id="color_scoring_method" class="form-control" style="width: 180px;">
-                                <option value="delta_e" selected>DeltaEP2000%</option>
+                                <option value="delta_e" selected>ΔE₀₀</option>
                                 <option value="csi">CSI</option>
                                 <option value="csi2000">CSI2000</option>
                             </select>
@@ -1137,7 +1187,7 @@
 
                     <div class="settings-group">
                         <div class="settings-group-header">
-                            <h3 data-i18n="thresholds.delta.e">Thresholds (Delta E 2000)</h3>
+                            <h3 data-i18n-html="thresholds.delta.e">Thresholds (ΔE<sub>00</sub>)</h3>
                         </div>
                         <p class="settings-group-desc" data-i18n="define.pass.fail">Define pass/fail criteria for color difference.</p>
 
@@ -1166,42 +1216,39 @@
                         <div class="settings-group-header" style="margin-top: 20px;">
                             <h3 data-i18n="csi.thresholds">CSI Thresholds</h3>
                         </div>
-                        <p class="settings-group-desc" data-i18n="csi.thresholds.desc">Define color thresholds for the Color Similarity Index.</p>
+                        <p class="settings-group-desc" data-i18n="csi.thresholds.desc">CSI uses full-image pixel-by-pixel ΔE₀₀ across the reference and sample images.</p>
                         <div class="setting-row">
-                            <div class="setting-label"><label data-i18n="csi.good.threshold">CSI Good Threshold</label><small data-i18n="above.this.green">Above this =
-                                    Green</small></div>
-                            <div style="display: flex; gap: 8px;">
-                                <input type="number" id="csi_good" class="form-control" value="90.0" step="0.1" min="0.1" max="99.9"
-                                    style="width: 80px;">
+                            <div class="setting-label">
+                                <label data-i18n="csi.good.threshold">CSI Good Threshold</label>
                             </div>
+                            <input type="number" id="csi_good_thresh" class="form-control" value="2.0" step="0.1" min="0" max="100.0">
                         </div>
                         <div class="setting-row">
-                            <div class="setting-label"><label data-i18n="csi.warning.threshold">CSI Warning Threshold</label><small data-i18n="above.this.orange">Above this =
-                                    Orange</small></div>
-                            <div style="display: flex; gap: 8px;">
-                                <input type="number" id="csi_warn" class="form-control" value="70.0" step="0.1" min="0.1" max="99.9"
-                                    style="width: 80px;">
+                            <div class="setting-label">
+                                <label data-i18n="csi.warning.threshold">CSI Warning Threshold</label>
                             </div>
+                            <input type="number" id="csi_warn_thresh" class="form-control" value="5.0" step="0.1" min="0" max="100.0">
                         </div>
+
                         <!-- Lab* Thresholds -->
                         <div class="settings-group-header" style="margin-top: 20px;">
                             <h3 data-i18n="lab.thresholds">Lab* Thresholds</h3>
                         </div>
                         <p class="settings-group-desc" data-i18n="lab.thresholds.desc">Define component-level thresholds for Lab* quality assessment.</p>
                         <div class="setting-row">
-                            <div class="setting-label"><label data-i18n="lab.thresh.dl">ΔL* Threshold</label><small data-i18n="lab.thresh.dl.desc">Lightness tolerance</small></div>
+                            <div class="setting-label"><label data-i18n="lab.thresh.dl">?L* Threshold</label><small data-i18n="lab.thresh.dl.desc">Lightness tolerance</small></div>
                             <input type="number" id="lab_thresh_dl" class="form-control" value="1.0" step="0.1" min="0.1" max="10.0" style="width: 80px;">
                         </div>
                         <div class="setting-row">
-                            <div class="setting-label"><label data-i18n="lab.thresh.da">Δa* Threshold</label><small data-i18n="lab.thresh.da.desc">Red-green axis tolerance</small></div>
+                            <div class="setting-label"><label data-i18n="lab.thresh.da">?a* Threshold</label><small data-i18n="lab.thresh.da.desc">Red-green axis tolerance</small></div>
                             <input type="number" id="lab_thresh_da" class="form-control" value="1.0" step="0.1" min="0.1" max="10.0" style="width: 80px;">
                         </div>
                         <div class="setting-row">
-                            <div class="setting-label"><label data-i18n="lab.thresh.db">Δb* Threshold</label><small data-i18n="lab.thresh.db.desc">Yellow-blue axis tolerance</small></div>
+                            <div class="setting-label"><label data-i18n="lab.thresh.db">?b* Threshold</label><small data-i18n="lab.thresh.db.desc">Yellow-blue axis tolerance</small></div>
                             <input type="number" id="lab_thresh_db" class="form-control" value="1.0" step="0.1" min="0.1" max="10.0" style="width: 80px;">
                         </div>
                         <div class="setting-row">
-                            <div class="setting-label"><label data-i18n="lab.thresh.mag">Magnitude Threshold</label><small data-i18n="lab.thresh.mag.desc">Combined ΔLab vector magnitude</small></div>
+                            <div class="setting-label"><label data-i18n="lab.thresh.mag">Magnitude Threshold</label><small data-i18n="lab.thresh.mag.desc">Combined ?Lab vector magnitude</small></div>
                             <input type="number" id="lab_thresh_mag" class="form-control" value="2.0" step="0.1" min="0.1" max="20.0" style="width: 80px;">
                         </div>
 
@@ -1268,6 +1315,40 @@
                                         </div>
                                     </div>
                                 </div>
+
+                                <!-- Coordinate Entry -->
+                                <div class="coord-entry-block">
+                                    <div class="coord-entry-header">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                                        <span data-i18n="coord.entry.title">Add Point by Coordinates</span>
+                                    </div>
+                                    <div class="coord-entry-form">
+                                        <div class="coord-input-group">
+                                            <label data-i18n="coord.x">X</label>
+                                            <input type="number" id="coordX" class="coord-input" min="0" placeholder="0">
+                                        </div>
+                                        <div class="coord-input-group">
+                                            <label data-i18n="coord.y">Y</label>
+                                            <input type="number" id="coordY" class="coord-input" min="0" placeholder="0">
+                                        </div>
+                                        <button type="button" class="coord-add-btn" onclick="addCoordPoint()">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                            <span data-i18n="coord.add">Add</span>
+                                        </button>
+                                    </div>
+                                    <div class="coord-feedback" id="coordFeedback"></div>
+                                    <div class="coord-points-list-wrapper">
+                                        <div class="coord-points-header">
+                                            <span class="coord-points-title" data-i18n="coord.added.points">Entered Points</span>
+                                            <button type="button" class="coord-clear-btn" id="coordClearAll" onclick="clearCoordPoints()" style="display:none;">
+                                                <span data-i18n="coord.clear.all">Clear All</span>
+                                            </button>
+                                        </div>
+                                        <div class="coord-points-list" id="coordPointsList">
+                                            <div class="coord-empty-state" data-i18n="coord.no.points">No coordinate points added yet.</div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -1301,16 +1382,16 @@
                         <div class="settings-group-header">
                             <h3 data-i18n="method.thresholds">Method Thresholds (Pass / Conditional)</h3>
                         </div>
-                        <p class="settings-group-desc" data-i18n="define.similarity.scores">Define similarity scores (0-100%) for pattern analysis.</p>
+                        <p class="settings-group-desc" data-i18n="define.similarity.scores">Define per-method thresholds for pattern analysis. SSIM uses raw 0-1 values.</p>
 
                         <div class="setting-row">
                             <div class="setting-label"><label data-i18n="structural.ssim">Structural SSIM</label><small data-i18n="pass.conditional">Pass /
                                     Conditional</small>
                             </div>
                             <div style="display: flex; gap: 8px;">
-                                <input type="number" id="ssim_pass" class="form-control" value="85.0" step="0.1" min="0.1" max="99.9"
+                                <input type="number" id="ssim_pass" class="form-control" value="0.85" step="0.01" min="0" max="1"
                                     style="width: 70px;" placeholder="Pass">
-                                <input type="number" id="ssim_cond" class="form-control" value="70.0" step="0.1" min="0.1" max="99.9"
+                                <input type="number" id="ssim_cond" class="form-control" value="0.70" step="0.01" min="0" max="1"
                                     style="width: 70px;" placeholder="Cond">
                             </div>
                         </div>
@@ -1348,6 +1429,83 @@
                         <div class="setting-label"><label data-i18n="global.pattern.score">Global Pattern Score</label><small data-i18n="overall.pass.threshold">Overall pass
                                 threshold</small></div>
                         <input type="number" id="pattern_global_thresh" class="form-control" value="75.0" step="0.1" min="0.1" max="99.9">
+                    </div>
+
+                    <!-- Sensitivity Controls: Difference & Boundary (Gradient & Phase) -->
+                    <div class="settings-group">
+                        <div class="settings-group-header">
+                            <h3 data-i18n="sensitivity.diff.title">Difference Sensitivity (1 � 10)</h3>
+                        </div>
+                        <p class="settings-group-desc" data-i18n="sensitivity.diff.desc">Controls how aggressively the difference map amplifies subtle variations. Higher values reveal finer differences; lower values suppress noise.</p>
+                        <div class="setting-row">
+                            <div class="setting-label">
+                                <label><span data-i18n="sensitivity.grad.diff">Gradient Diff Sensitivity</span> <span class="sci-param">(G<sub>e</sub>)</span></label>
+                                <small data-i18n="sensitivity.hint.strict.permissive">1 = strict, 10 = permissive</small>
+                            </div>
+                            <div style="display:flex;gap:10px;align-items:center;min-width:200px;">
+                                <input type="range" id="grad_diff_sens" min="1" max="10" step="1" value="7"
+                                       oninput="document.getElementById('grad_diff_sens_val').textContent=this.value">
+                                <span id="grad_diff_sens_val" style="min-width:18px;text-align:right;font-weight:600;">7</span>
+                            </div>
+                        </div>
+                        <div class="setting-row">
+                            <div class="setting-label">
+                                <label><span data-i18n="sensitivity.phase.diff">Phase Diff Sensitivity</span> <span class="sci-param">(F<sub>e</sub>)</span></label>
+                                <small data-i18n="sensitivity.hint.strict.permissive">1 = strict, 10 = permissive</small>
+                            </div>
+                            <div style="display:flex;gap:10px;align-items:center;min-width:200px;">
+                                <input type="range" id="phase_diff_sens" min="1" max="10" step="1" value="7"
+                                       oninput="document.getElementById('phase_diff_sens_val').textContent=this.value">
+                                <span id="phase_diff_sens_val" style="min-width:18px;text-align:right;font-weight:600;">7</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-group">
+                        <div class="settings-group-header">
+                            <h3 data-i18n="sensitivity.bound.title">Boundary Extraction Sensitivity (1 � 10)</h3>
+                        </div>
+                        <p class="settings-group-desc" data-i18n="sensitivity.bound.desc">Controls how aggressively boundary contours are extracted from the difference map. Higher values detect more subtle boundary regions; lower values show only obvious defects.</p>
+                        <div class="setting-row">
+                            <div class="setting-label">
+                                <label><span data-i18n="sensitivity.grad.bound">Gradient Boundary Sensitivity</span> <span class="sci-param">(G'<sub>e</sub>)</span></label>
+                                <small data-i18n="sensitivity.hint.strict.permissive">1 = strict, 10 = permissive</small>
+                            </div>
+                            <div style="display:flex;gap:10px;align-items:center;min-width:200px;">
+                                <input type="range" id="grad_bound_sens" min="1" max="10" step="1" value="4"
+                                       oninput="document.getElementById('grad_bound_sens_val').textContent=this.value">
+                                <span id="grad_bound_sens_val" style="min-width:18px;text-align:right;font-weight:600;">4</span>
+                            </div>
+                        </div>
+                        <div class="setting-row">
+                            <div class="setting-label">
+                                <label><span data-i18n="sensitivity.phase.bound">Phase Boundary Sensitivity</span> <span class="sci-param">(F'<sub>e</sub>)</span></label>
+                                <small data-i18n="sensitivity.hint.strict.permissive">1 = strict, 10 = permissive</small>
+                            </div>
+                            <div style="display:flex;gap:10px;align-items:center;min-width:200px;">
+                                <input type="range" id="phase_bound_sens" min="1" max="10" step="1" value="8"
+                                       oninput="document.getElementById('phase_bound_sens_val').textContent=this.value">
+                                <span id="phase_bound_sens_val" style="min-width:18px;text-align:right;font-weight:600;">8</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-group">
+                        <div class="settings-group-header">
+                            <h3 data-i18n="sensitivity.structural.title">Structural Sensitivity (1 � 10)</h3>
+                        </div>
+                        <p class="settings-group-desc" data-i18n="sensitivity.structural.desc">Controls how aggressively the multi-method structural difference pipeline detects changes. Higher values flag subtle variations; lower values only flag obvious defects.</p>
+                        <div class="setting-row">
+                            <div class="setting-label">
+                                <label><span data-i18n="sensitivity.structural">Structural Sensitivity</span> <span class="sci-param">(Y<sub>e</sub>)</span></label>
+                                <small data-i18n="sensitivity.hint.strict.permissive">1 = strict, 10 = permissive</small>
+                            </div>
+                            <div style="display:flex;gap:10px;align-items:center;min-width:200px;">
+                                <input type="range" id="structural_sens" min="1" max="10" step="1" value="10"
+                                       oninput="document.getElementById('structural_sens_val').textContent=this.value">
+                                <span id="structural_sens_val" style="min-width:18px;text-align:right;font-weight:600;">10</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -1489,6 +1647,30 @@
                                 <div class="setting-label"><label data-i18n="color.spaces">Color Spaces</label></div>
                                 <label class="modern-checkbox">
                                     <input type="checkbox" id="sec_color_spaces" checked>
+                                    <span class="checkmark">
+                                        <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                            stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                                            <polyline points="20 6 9 17 4 12"></polyline>
+                                        </svg>
+                                    </span>
+                                </label>
+                            </div>
+                            <div class="setting-row">
+                                <div class="setting-label"><label data-i18n="executive.overview">Executive Overview</label></div>
+                                <label class="modern-checkbox">
+                                    <input type="checkbox" id="sec_exec_summary" checked>
+                                    <span class="checkmark">
+                                        <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                            stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                                            <polyline points="20 6 9 17 4 12"></polyline>
+                                        </svg>
+                                    </span>
+                                </label>
+                            </div>
+                            <div class="setting-row">
+                                <div class="setting-label"><label data-i18n="visual.comparison.section">Visual Comparison</label></div>
+                                <label class="modern-checkbox">
+                                    <input type="checkbox" id="sec_visual_comparison" checked>
                                     <span class="checkmark">
                                         <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                             stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
@@ -1927,9 +2109,9 @@
     <!-- Footer -->
     <footer class="footer">
         <img src="/static/images/logo_vertical_512x256.png" alt="SpectroTXQS Logo" class="footer-logo">
-        <span data-i18n="copyright">© 2026 Textile Engineering Solutions | </span>
+        <span data-i18n="copyright">� 2026 Textile Engineering Solutions | </span>
 
-        <button class="footer-contact-btn" id="footerContactBtn" type="button">Abdelbary Algamel PAÜ</button>
+        <button class="footer-contact-btn" id="footerContactBtn" type="button">Abdelbary Algamel PA�</button>
     </footer>
 
     <!-- Contact Popup -->
@@ -2007,7 +2189,7 @@
                 <span class="dl-fallback-seconds" id="dlFallbackSeconds">20</span>
             </div>
             <div class="dl-fallback-hint" data-i18n="dl.fallback.hint">If the download didn't start, click the button below</div>
-            <a class="dl-fallback-btn" id="dlFallbackBtn" href="/download/desktop" download>
+            <a class="dl-fallback-btn" id="dlFallbackBtn" href="/static/downloads/SpectraMatch_Setup_3.0.0.exe" download>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
                     <polyline points="7 10 12 15 17 10"/>
@@ -2042,6 +2224,79 @@
         <div class="rtt-loader-card">
             <div class="rtt-loader-track"><div class="rtt-loader-bar"></div></div>
             <div class="rtt-loader-text" data-i18n="rtt.loader.text">Loading images into the interface and preparing the environment.</div>
+        </div>
+    </div>
+
+    <!-- Camera Capture Studio Modal -->
+    <div class="cam-studio-overlay" id="camStudioOverlay">
+        <div class="cam-studio-modal">
+            <div class="cam-studio-header">
+                <div class="cam-studio-title">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                    <span data-i18n="cam.studio.title">Camera Capture Studio</span>
+                    <span class="cam-target-badge" id="camTargetBadge"></span>
+                </div>
+                <div class="cam-studio-controls-top">
+                    <select id="camDeviceSelect" class="cam-device-select">
+                        <option data-i18n="cam.select.camera">Select Camera</option>
+                    </select>
+                    <button type="button" class="cam-btn-icon" id="camMirrorBtn" data-i18n-title="cam.mirror" title="Mirror">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="7 23 7 1"/><polyline points="17 1 17 23"/><path d="M11 5H3v14h8"/><path d="M13 5h8v14h-8"/></svg>
+                    </button>
+                    <button type="button" class="cam-btn-close" id="camCloseBtn" data-i18n-title="cam.close" aria-label="Close">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
+                </div>
+            </div>
+            <div class="cam-studio-body">
+                <div class="cam-preview-area" id="camPreviewArea">
+                    <div class="cam-status-msg" id="camStatusMsg" data-i18n="cam.requesting">Requesting camera access...</div>
+                    <video id="camVideo" autoplay playsinline muted></video>
+                    <canvas id="camCaptureCanvas" style="display:none;"></canvas>
+                    <img id="camCapturedImg" class="cam-captured-img" style="display:none;">
+                    <div class="cam-crop-overlay" id="camCropOverlay" style="display:none;">
+                        <div class="cam-crop-box" id="camCropBox">
+                            <div class="cam-crop-handle cam-crop-nw"></div>
+                            <div class="cam-crop-handle cam-crop-ne"></div>
+                            <div class="cam-crop-handle cam-crop-sw"></div>
+                            <div class="cam-crop-handle cam-crop-se"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="cam-adjust-bar" id="camAdjustBar" style="display:none;">
+                    <div class="cam-adjust-group">
+                        <button type="button" class="cam-adj-btn" id="camRotateLeft" data-i18n-title="cam.rotate.left" title="Rotate Left">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+                        </button>
+                        <button type="button" class="cam-adj-btn" id="camRotateRight" data-i18n-title="cam.rotate.right" title="Rotate Right">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.13-9.36L23 10"/></svg>
+                        </button>
+                        <button type="button" class="cam-adj-btn" id="camFlipH" data-i18n-title="cam.flip.h" title="Flip Horizontal">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="7 23 7 1"/><polyline points="17 1 17 23"/><path d="M11 5H3v14h8"/><path d="M13 5h8v14h-8"/></svg>
+                        </button>
+                    </div>
+                    <div class="cam-adjust-group cam-sliders">
+                        <label class="cam-slider-label"><span data-i18n="cam.brightness">Brightness</span>
+                            <input type="range" id="camBrightness" min="-100" max="100" value="0" class="cam-slider">
+                        </label>
+                        <label class="cam-slider-label"><span data-i18n="cam.contrast">Contrast</span>
+                            <input type="range" id="camContrast" min="-100" max="100" value="0" class="cam-slider">
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="cam-studio-footer">
+                <div class="cam-footer-left">
+                    <button type="button" class="cam-btn cam-btn-secondary" id="camCancelBtn" data-i18n="cam.cancel">Cancel</button>
+                </div>
+                <div class="cam-footer-center">
+                    <button type="button" class="cam-btn cam-btn-capture" id="camCaptureBtn" data-i18n="cam.capture">Capture</button>
+                    <button type="button" class="cam-btn cam-btn-secondary" id="camRetakeBtn" style="display:none;" data-i18n="cam.retake">Retake</button>
+                </div>
+                <div class="cam-footer-right">
+                    <button type="button" class="cam-btn cam-btn-primary" id="camUseBtn" style="display:none;" data-i18n="cam.use.image">Use Image</button>
+                </div>
+            </div>
         </div>
     </div>
 </body>

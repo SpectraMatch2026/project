@@ -53,29 +53,28 @@ def adapt_to_illuminant(xyz_d65, target_illuminant):
     M_total = np.dot(M_A_inv, np.dot(M_scale, M_A))
     
     # Apply
-    xyz_new = np.dot(M_total, xyz_d65)
+    xyz_arr = np.asarray(xyz_d65, dtype=np.float32)
+    xyz_new = np.dot(xyz_arr, M_total.T)
     return xyz_new
 
 def xyz_to_lab(xyz, white_point):
     """
     Convert XYZ to Lab given a specific white point.
     """
-    Xn, Yn, Zn = white_point
-    X, Y, Z = xyz
-    
-    xf = X / Xn
-    yf = Y / Yn
-    zf = Z / Zn
+    xyz_arr = np.asarray(xyz, dtype=np.float32)
+    white = np.asarray(white_point, dtype=np.float32)
+    xyz_scaled = xyz_arr / white
     
     def f(t):
-        return t**(1/3) if t > 0.008856 else 7.787*t + 16/116
+        return np.where(t > 0.008856, np.power(t, 1.0 / 3.0), 7.787 * t + 16 / 116)
         
-    L = 116 * f(yf) - 16
-    a = 500 * (f(xf) - f(yf))
-    b = 200 * (f(yf) - f(zf))
-    
-    return np.array([L, a, b])
-
+    fx = f(xyz_scaled[..., 0])
+    fy = f(xyz_scaled[..., 1])
+    fz = f(xyz_scaled[..., 2])
+    L = 116 * fy - 16
+    a = 500 * (fx - fy)
+    b = 200 * (fy - fz)
+    return np.stack([L, a, b], axis=-1).astype(np.float32)
 
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import inch
@@ -134,11 +133,14 @@ DEFAULT_CONFIG = {
         'stats': True,
         'detailed_lab': True,
         'visualizations': True,
-        'spectral': True, 'visual_diff': True,
+        'spectral': True,
+        'histograms': True,
+        'visual_diff': True,
+        'exec_summary': True,
+        'visual_comparison': True,
         'recommendations_color': True,
         'csi_under_heatmap': False
-    },
-    'csi_thresholds': {'good': 90.0, 'warn': 70.0}
+    }
 }
 
 PRIMARY_LOGO = r"logo_square_with_name_1024x1024.png"
@@ -601,7 +603,9 @@ def save_fig(path):
     plt.savefig(path, dpi=DPI, bbox_inches="tight")
     plt.close()
 
-def plot_spectral_proxy(mean_rgb_ref, mean_rgb_test, path):
+def plot_spectral_proxy(mean_rgb_ref, mean_rgb_test, path, tr=None):
+    if tr is None:
+        tr = lambda k, d=None: (d if d else k.replace('_', ' ').title())
     wl = np.linspace(380, 700, 161)
     def gaussian(w, mu, sigma): return np.exp(-0.5*((w-mu)/sigma)**2)
     base_B = gaussian(wl, 450, 22)
@@ -613,23 +617,27 @@ def plot_spectral_proxy(mean_rgb_ref, mean_rgb_test, path):
     test_curve /= (test_curve.max() + 1e-8)
     
     plt.figure(figsize=(7,3))
-    plt.plot(wl, ref_curve, label="Reference", color="green")
-    plt.plot(wl, test_curve, label="Sample", color="red", linestyle="--")
-    plt.xlabel("Wavelength (nm)")
-    plt.ylabel("Relative Intensity (Proxy)")
-    plt.title("Spectral Distribution (Proxy from RGB)")
+    plt.plot(wl, ref_curve, label=tr('fig_reference'), color="green")
+    plt.plot(wl, test_curve, label=tr('fig_sample'), color="red", linestyle="--")
+    plt.xlabel(tr('fig_wavelength'))
+    plt.ylabel(tr('fig_relative_intensity'))
+    plt.title(tr('fig_spectral_title'))
     plt.grid(True, alpha=0.3)
     plt.legend()
     save_fig(path)
 
-def plot_rgb_histogram(img_bgr, path, title='RGB Histogram'):
+def plot_rgb_histogram(img_bgr, path, title=None, tr=None):
     """Plot RGB histogram for a single image."""
+    if tr is None:
+        tr = lambda k, d=None: (d if d else k.replace('_', ' ').title())
+    if title is None:
+        title = tr('fig_rgb_histogram')
     fig, ax = plt.subplots(figsize=(5.5, 3.2))
     for i, (color, label) in enumerate(zip(['blue', 'green', 'red'], ['B', 'G', 'R'])):
         hist = cv2.calcHist([img_bgr], [i], None, [256], [0, 256]).flatten()
         ax.bar(range(256), hist, color=color, alpha=0.45, width=1.0, label=label)
-    ax.set_xlabel('Value', fontsize=9)
-    ax.set_ylabel('Count', fontsize=9)
+    ax.set_xlabel(tr('fig_value'), fontsize=9)
+    ax.set_ylabel(tr('fig_count'), fontsize=9)
     ax.set_title(title, fontsize=11, fontweight='bold')
     ax.legend(fontsize=8)
     ax.set_xlim([0, 255])
@@ -638,15 +646,21 @@ def plot_rgb_histogram(img_bgr, path, title='RGB Histogram'):
     plt.close(fig)
 
 
-def plot_rgb_histograms_dual(ref_bgr, sample_bgr, path, ref_title='Reference RGB Histogram', sam_title='Sample RGB Histogram'):
+def plot_rgb_histograms_dual(ref_bgr, sample_bgr, path, ref_title=None, sam_title=None, tr=None):
     """Plot side-by-side RGB histograms for Reference and Sample."""
+    if tr is None:
+        tr = lambda k, d=None: (d if d else k.replace('_', ' ').title())
+    if ref_title is None:
+        ref_title = tr('fig_ref_rgb_histogram')
+    if sam_title is None:
+        sam_title = tr('fig_sam_rgb_histogram')
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 3.5))
     for ax, img, title in [(ax1, ref_bgr, ref_title), (ax2, sample_bgr, sam_title)]:
         for i, (color, label) in enumerate(zip(['blue', 'green', 'red'], ['B', 'G', 'R'])):
             hist = cv2.calcHist([img], [i], None, [256], [0, 256]).flatten()
             ax.bar(range(256), hist, color=color, alpha=0.45, width=1.0, label=label)
-        ax.set_xlabel('Value', fontsize=9)
-        ax.set_ylabel('Count', fontsize=9)
+        ax.set_xlabel(tr('fig_value'), fontsize=9)
+        ax.set_ylabel(tr('fig_count'), fontsize=9)
         ax.set_title(title, fontsize=10, fontweight='bold')
         ax.legend(fontsize=8)
         ax.set_xlim([0, 255])
@@ -655,7 +669,11 @@ def plot_rgb_histograms_dual(ref_bgr, sample_bgr, path, ref_title='Reference RGB
     plt.close(fig)
 
 
-def plot_heatmap(de_map, title, path):
+def plot_heatmap(de_map, title, path, tr=None):
+    if tr is None:
+        tr = lambda k, d=None: (d if d else k.replace('_', ' ').title())
+    if title is None:
+        title = tr('fig_de_heatmap')
     vmax = np.percentile(de_map, 99)
     plt.figure(figsize=(6, 3))
     im = plt.imshow(de_map, cmap="inferno", vmin=0, vmax=max(vmax, 5.0))
@@ -664,8 +682,16 @@ def plot_heatmap(de_map, title, path):
     plt.colorbar(im, fraction=0.046, pad=0.04)
     save_fig(path)
 
-def plot_lab_scatter(reg_stats, path, ref_label='Reference', sam_label='Sample', title='a* vs b* Chromaticity Scatter'):
+def plot_lab_scatter(reg_stats, path, ref_label=None, sam_label=None, title=None, tr=None):
     """a* vs b* scatter plot with reference and sample overlay."""
+    if tr is None:
+        tr = lambda k, d=None: (d if d else k.replace('_', ' ').title())
+    if ref_label is None:
+        ref_label = tr('fig_reference')
+    if sam_label is None:
+        sam_label = tr('fig_sample')
+    if title is None:
+        title = tr('lab_scatter_title')
     fig, ax = plt.subplots(figsize=(5, 4.2))
     ref_a = [s['ref']['lab'][1] for s in reg_stats]
     ref_b = [s['ref']['lab'][2] for s in reg_stats]
@@ -678,15 +704,23 @@ def plot_lab_scatter(reg_stats, path, ref_label='Reference', sam_label='Sample',
                      arrowprops=dict(arrowstyle='->', color='#95A5A6', lw=0.8))
     ax.axhline(0, color='#BDC3C7', lw=0.5, ls='--')
     ax.axvline(0, color='#BDC3C7', lw=0.5, ls='--')
-    ax.set_xlabel('a* (Red ← → Green)')
-    ax.set_ylabel('b* (Yellow ← → Blue)')
+    ax.set_xlabel(tr('fig_a_axis'))
+    ax.set_ylabel(tr('fig_b_axis'))
     ax.set_title(title, fontsize=11, fontweight='bold')
     ax.legend(fontsize=8)
     ax.grid(True, alpha=0.2)
     save_fig(path)
 
-def plot_lab_bars(reg_stats, path, ref_label='Reference', sam_label='Sample', title='Lab Components – Mean'):
+def plot_lab_bars(reg_stats, path, ref_label=None, sam_label=None, title=None, tr=None):
     """Grouped bar chart comparing mean L*, a*, b* between reference and sample."""
+    if tr is None:
+        tr = lambda k, d=None: (d if d else k.replace('_', ' ').title())
+    if ref_label is None:
+        ref_label = tr('fig_reference')
+    if sam_label is None:
+        sam_label = tr('fig_sample')
+    if title is None:
+        title = tr('lab_components_mean')
     ref_L = np.mean([s['ref']['lab'][0] for s in reg_stats])
     ref_a = np.mean([s['ref']['lab'][1] for s in reg_stats])
     ref_b = np.mean([s['ref']['lab'][2] for s in reg_stats])
@@ -781,8 +815,11 @@ def analyze_color(ref_img_bgr, sample_img_bgr, config=None):
     if sample_img_bgr.shape != ref_img_bgr.shape:
         sample_img_bgr = cv2.resize(sample_img_bgr, (w, h))
 
-    thresh_pass = float(cfg['thresholds']['pass'])
-    thresh_cond = float(cfg['thresholds']['conditional'])
+    thresholds_cfg = cfg.get('thresholds', {})
+    if not isinstance(thresholds_cfg, dict):
+        thresholds_cfg = {}
+    thresh_pass = float(cfg.get('color_threshold_pass', thresholds_cfg.get('pass', 2.0)))
+    thresh_cond = float(cfg.get('color_threshold_conditional', thresholds_cfg.get('conditional', 5.0)))
     global_thresh = float(cfg.get('global_threshold_de', 5.0))
     
     reg_stats = []
@@ -832,25 +869,236 @@ def analyze_color(ref_img_bgr, sample_img_bgr, config=None):
     else:
         overall_status = "FAIL"
     
-    # CSI computation (full-image Delta E 76 based)
-    small_ref = cv2.resize(ref_img_bgr, (0, 0), fx=0.25, fy=0.25)
-    small_sam = cv2.resize(sample_img_bgr, (0, 0), fx=0.25, fy=0.25)
-    s_ref_lab = cv2.cvtColor(small_ref, cv2.COLOR_BGR2LAB).astype(np.float32)
-    s_sam_lab = cv2.cvtColor(small_sam, cv2.COLOR_BGR2LAB).astype(np.float32)
-    diff_map_csi = np.sqrt(np.sum((s_ref_lab - s_sam_lab) ** 2, axis=2))
-    mean_delta_csi = np.mean(diff_map_csi)
-    csi_value = max(0, min(100, 100 * (1 - mean_delta_csi / 100.0)))
-    
+    csi_details = compute_csi_details(
+        ref_img_bgr,
+        sample_img_bgr,
+        illuminant=cfg.get('primary_illuminant', 'D65')
+    )
+    csi_value = float(csi_details['value'])
+    csi_pass_thr, csi_cond_thr, csi_legacy_thresholds = resolve_csi_thresholds(
+        cfg, thresh_pass, thresh_cond
+    )
+    csi_status = resolve_deltae_status(csi_value, csi_pass_thr, csi_cond_thr)
+    csi_details.update({
+        'status': csi_status,
+        'threshold_pass': float(csi_pass_thr),
+        'threshold_conditional': float(csi_cond_thr),
+        'legacy_threshold_migrated': bool(csi_legacy_thresholds),
+    })
+    color_averages = {
+        'ref_lab': [float(v) for v in csi_details['ref_mean_lab']],
+        'sam_lab': [float(v) for v in csi_details['sam_mean_lab']],
+        'ref_rgb': [float(v) for v in csi_details['ref_mean_rgb255']],
+        'sam_rgb': [float(v) for v in csi_details['sam_mean_rgb255']],
+    }
+     
     return {
         "reg_stats": reg_stats,
         "mean_de00": mean_de00,
         "overall_status": overall_status,
         "csi_value": csi_value,
+        "csi_details": csi_details,
+        "color_averages": color_averages,
         "r": r,
         "points": points, # Return GLOBAL points
         "modified_sample": sample_img_bgr,
         "config": cfg
     }
+
+def _get_effective_bgr_pixels(img):
+    if img is None or getattr(img, 'size', 0) == 0:
+        return np.array([[0, 0, 0]], dtype=np.uint8)
+    img_bgr = img[:, :, :3]
+    pixels = img_bgr.reshape(-1, 3)
+    if img.shape[2] == 4:
+        valid_mask = img[:, :, 3].reshape(-1) > 0
+        pixels = pixels[valid_mask]
+    if len(pixels) == 0:
+        pixels = np.array([[0, 0, 0]], dtype=np.uint8)
+    return np.ascontiguousarray(pixels, dtype=np.uint8)
+
+def _bgr_pixels_to_lab_std(pixels):
+    lab = cv2.cvtColor(pixels.reshape(-1, 1, 3), cv2.COLOR_BGR2LAB).reshape(-1, 3).astype(np.float32)
+    lab[:, 0] = lab[:, 0] * 100.0 / 255.0
+    lab[:, 1] = lab[:, 1] - 128.0
+    lab[:, 2] = lab[:, 2] - 128.0
+    return lab
+
+def _bgr_pixels_to_lab(pixels, illuminant='D65'):
+    pixels = np.ascontiguousarray(pixels, dtype=np.uint8)
+    if pixels.shape[0] == 0:
+        return np.zeros((0, 3), dtype=np.float32)
+    rgb = pixels[:, ::-1].astype(np.float32)
+    rgb01 = rgb / 255.0
+    if illuminant in WHITE_POINTS and illuminant != 'D65':
+        xyz = srgb_to_xyz(rgb01)
+        xyz = adapt_to_illuminant(xyz, illuminant)
+        return xyz_to_lab(xyz, WHITE_POINTS[illuminant]).astype(np.float32)
+    return _bgr_pixels_to_lab_std(pixels)
+
+def _prepare_paired_images(ref_img_bgr, sample_img_bgr):
+    ref_aligned = ref_img_bgr
+    sample_aligned = sample_img_bgr
+    if sample_aligned.shape[:2] != ref_aligned.shape[:2]:
+        sample_aligned = cv2.resize(
+            sample_aligned,
+            (ref_aligned.shape[1], ref_aligned.shape[0]),
+            interpolation=cv2.INTER_LINEAR
+        )
+    return ref_aligned, sample_aligned
+
+def _effective_pixel_mask(img):
+    if img.ndim == 3 and img.shape[2] == 4:
+        return img[:, :, 3] > 0
+    return np.ones(img.shape[:2], dtype=bool)
+
+def _get_paired_effective_bgr_pixels(ref_img_bgr, sample_img_bgr):
+    ref_aligned, sample_aligned = _prepare_paired_images(ref_img_bgr, sample_img_bgr)
+    paired_mask = _effective_pixel_mask(ref_aligned) & _effective_pixel_mask(sample_aligned)
+    ref_pixels = np.ascontiguousarray(ref_aligned[:, :, :3][paired_mask], dtype=np.uint8)
+    sample_pixels = np.ascontiguousarray(sample_aligned[:, :, :3][paired_mask], dtype=np.uint8)
+    return ref_pixels, sample_pixels
+
+def _deltaE2000_array(lab1, lab2, kL=1.0, kC=1.0, kH=1.0):
+    lab1 = np.asarray(lab1, dtype=np.float32)
+    lab2 = np.asarray(lab2, dtype=np.float32)
+    if lab1.size == 0 or lab2.size == 0:
+        return np.zeros((0,), dtype=np.float32)
+
+    L1, a1, b1 = lab1[:, 0], lab1[:, 1], lab1[:, 2]
+    L2, a2, b2 = lab2[:, 0], lab2[:, 1], lab2[:, 2]
+    avgLp = (L1 + L2) / 2.0
+    C1 = np.sqrt(a1 * a1 + b1 * b1)
+    C2 = np.sqrt(a2 * a2 + b2 * b2)
+    avgC = (C1 + C2) / 2.0
+    G = 0.5 * (1.0 - np.sqrt((avgC ** 7) / ((avgC ** 7) + (25.0 ** 7))))
+
+    a1p = (1.0 + G) * a1
+    a2p = (1.0 + G) * a2
+    C1p = np.sqrt(a1p * a1p + b1 * b1)
+    C2p = np.sqrt(a2p * a2p + b2 * b2)
+    avgCp = (C1p + C2p) / 2.0
+
+    h1p = np.degrees(np.arctan2(b1, a1p)) % 360.0
+    h2p = np.degrees(np.arctan2(b2, a2p)) % 360.0
+    dLp = L2 - L1
+    dCp = C2p - C1p
+    dhp = h2p - h1p
+    zero_chroma = (C1p * C2p) == 0
+    dhp = np.where(zero_chroma, 0.0, dhp)
+    dhp = np.where((~zero_chroma) & (np.abs(dhp) > 180.0) & (h2p <= h1p), dhp + 360.0, dhp)
+    dhp = np.where((~zero_chroma) & (np.abs(dhp) > 180.0) & (h2p > h1p), dhp - 360.0, dhp)
+
+    dHp = 2.0 * np.sqrt(C1p * C2p) * np.sin(np.radians(dhp) / 2.0)
+    avgHp = np.where(zero_chroma, h1p + h2p, (h1p + h2p) / 2.0)
+    avgHp = np.where((~zero_chroma) & (np.abs(h1p - h2p) > 180.0), (h1p + h2p + 360.0) / 2.0, avgHp)
+
+    T = (
+        1.0
+        - 0.17 * np.cos(np.radians(avgHp - 30.0))
+        + 0.24 * np.cos(np.radians(2.0 * avgHp))
+        + 0.32 * np.cos(np.radians(3.0 * avgHp + 6.0))
+        - 0.20 * np.cos(np.radians(4.0 * avgHp - 63.0))
+    )
+    dRo = 30.0 * np.exp(-((avgHp - 275.0) / 25.0) ** 2)
+    RC = 2.0 * np.sqrt((avgCp ** 7) / ((avgCp ** 7) + (25.0 ** 7)))
+    SL = 1.0 + (0.015 * (avgLp - 50.0) ** 2) / np.sqrt(20.0 + (avgLp - 50.0) ** 2)
+    SC = 1.0 + 0.045 * avgCp
+    SH = 1.0 + 0.015 * avgCp * T
+    RT = -np.sin(np.radians(2.0 * dRo)) * RC
+
+    dE = np.sqrt(
+        (dLp / (kL * SL)) ** 2
+        + (dCp / (kC * SC)) ** 2
+        + (dHp / (kH * SH)) ** 2
+        + RT * (dCp / (kC * SC)) * (dHp / (kH * SH))
+    )
+    return dE.astype(np.float32)
+
+def compute_csi_details(ref_img_bgr, sample_img_bgr, illuminant='D65'):
+    """
+    CSI: full-image pixel-by-pixel Delta E2000 between the reference and sample images.
+    The metric uses all valid overlapping pixels and is independent of sampling points.
+    """
+    ref_pixels, sample_pixels = _get_paired_effective_bgr_pixels(ref_img_bgr, sample_img_bgr)
+    pixel_count = int(ref_pixels.shape[0])
+    if pixel_count == 0:
+        zero_lab = np.zeros(3, dtype=np.float32)
+        zero_rgb = np.zeros(3, dtype=np.float32)
+        return {
+            'value': 0.0,
+            'mean_de00': 0.0,
+            'std_de00': 0.0,
+            'min_de00': 0.0,
+            'max_de00': 0.0,
+            'pixel_count': 0,
+            'ref_mean_lab': zero_lab,
+            'sam_mean_lab': zero_lab,
+            'ref_mean_rgb255': zero_rgb,
+            'sam_mean_rgb255': zero_rgb,
+            'illuminant': illuminant,
+            'comparison_mode': 'full_image_pixelwise_deltae2000',
+        }
+
+    lab_ref = _bgr_pixels_to_lab(ref_pixels, illuminant=illuminant)
+    lab_sam = _bgr_pixels_to_lab(sample_pixels, illuminant=illuminant)
+    delta_e_values = _deltaE2000_array(lab_ref, lab_sam)
+    return {
+        'value': float(np.mean(delta_e_values)),
+        'mean_de00': float(np.mean(delta_e_values)),
+        'std_de00': float(np.std(delta_e_values)),
+        'min_de00': float(np.min(delta_e_values)),
+        'max_de00': float(np.max(delta_e_values)),
+        'pixel_count': pixel_count,
+        'ref_mean_lab': np.mean(lab_ref, axis=0).astype(np.float32),
+        'sam_mean_lab': np.mean(lab_sam, axis=0).astype(np.float32),
+        'ref_mean_rgb255': np.mean(ref_pixels[:, ::-1].astype(np.float32), axis=0).astype(np.float32),
+        'sam_mean_rgb255': np.mean(sample_pixels[:, ::-1].astype(np.float32), axis=0).astype(np.float32),
+        'illuminant': illuminant,
+        'comparison_mode': 'full_image_pixelwise_deltae2000',
+    }
+
+
+def deltae_to_score(value):
+    """Map a raw DeltaE-like metric to a 0..100 visualization score."""
+    try:
+        raw = float(value)
+    except Exception:
+        raw = 0.0
+    return max(0.0, min(100.0, 100.0 - (raw * 10.0)))
+
+
+def resolve_deltae_status(value, pass_thr, cond_thr):
+    try:
+        raw = float(value)
+    except Exception:
+        raw = 0.0
+    if raw <= float(pass_thr):
+        return "PASS"
+    if raw <= float(cond_thr):
+        return "CONDITIONAL"
+    return "FAIL"
+
+
+def resolve_csi_thresholds(cfg, fallback_pass=2.0, fallback_cond=5.0):
+    """Resolve CSI thresholds in raw DeltaE units.
+
+    Older project versions stored CSI as a similarity score (higher is better)
+    using values such as 90/70. When such legacy settings are detected,
+    automatically fall back to the color DeltaE thresholds.
+    """
+    cfg = cfg or {}
+    csi_thresholds = cfg.get('csi_thresholds', {})
+    if not isinstance(csi_thresholds, dict):
+        csi_thresholds = {}
+
+    pass_thr = float(cfg.get('csi_good', csi_thresholds.get('good', fallback_pass)))
+    cond_thr = float(cfg.get('csi_warn', csi_thresholds.get('warn', fallback_cond)))
+
+    legacy_mode = pass_thr > cond_thr
+    if legacy_mode:
+        return float(fallback_pass), float(fallback_cond), True
+    return float(pass_thr), float(cond_thr), False
 
 def generate_pdf_headless(ref_img_bgr, sample_img_bgr, analysis_data, out_path, config=None, temp_dir=None, report_id=None, timestamp=None):
     cfg = config or DEFAULT_CONFIG
@@ -874,15 +1122,17 @@ def generate_pdf_headless(ref_img_bgr, sample_img_bgr, analysis_data, out_path, 
     analysis_id = report_id if report_id else f"SPEC_{ts.strftime('%y%m%d_%H%M%S')}"
 
     # --- CSI from analysis_data (computed in analyze_color) ---
-    csi_value = analysis_data.get('csi_value', 0)
-    
-    csi_conf = cfg.get('csi_thresholds', {'good': 90.0, 'warn': 70.0})
-    csi_good = float(csi_conf.get('good', 90.0))
-    csi_warn = float(csi_conf.get('warn', 70.0))
-    
-    if csi_value >= csi_good:
+    csi_details = analysis_data.get('csi_details', {})
+    csi_value = float(csi_details.get('value', analysis_data.get('csi_value', 0)))
+    csi_pixel_count = int(csi_details.get('pixel_count', 0))
+    color_pass_thr = float(cfg.get('color_threshold_pass', cfg.get('thresholds', {}).get('pass', 2.0)))
+    color_cond_thr = float(cfg.get('color_threshold_conditional', cfg.get('thresholds', {}).get('conditional', 5.0)))
+    csi_pass_thr, csi_cond_thr, _ = resolve_csi_thresholds(cfg, color_pass_thr, color_cond_thr)
+    csi_status = str(csi_details.get('status') or resolve_deltae_status(csi_value, csi_pass_thr, csi_cond_thr))
+
+    if csi_status == 'PASS':
         csi_color = GREEN
-    elif csi_value >= csi_warn:
+    elif csi_status == 'CONDITIONAL':
         csi_color = ORANGE
     else:
         csi_color = RED
@@ -898,6 +1148,7 @@ def generate_pdf_headless(ref_img_bgr, sample_img_bgr, analysis_data, out_path, 
     reg_stats = analysis_data['reg_stats']
     mean_de00 = analysis_data['mean_de00']
     overall_status = analysis_data['overall_status']
+    de_score = deltae_to_score(mean_de00)
     r = analysis_data['r']
     points = analysis_data['points']
     
@@ -911,11 +1162,11 @@ def generate_pdf_headless(ref_img_bgr, sample_img_bgr, analysis_data, out_path, 
             return [label, f"{np.mean(arr):.2f}", f"{np.std(arr):.2f}", f"{np.min(arr):.2f}", f"{np.max(arr):.2f}", ""]
             
         stats_rows = [get_stats_row("ΔE76", all_de76), get_stats_row("ΔE94", all_de94)]
-        row_00 = get_stats_row("ΔE2000", all_de00)
-        row_00[-1] = overall_status
+        row_00 = get_stats_row("ΔE00", all_de00)
+        row_00[-1] = translate_status(overall_status, report_lang)
         stats_rows.append(row_00)
     else:
-        stats_rows = [["ΔE76", "-", "-", "-", "-", ""], ["ΔE94", "-", "-", "-", "-", ""], ["ΔE2000", "-", "-", "-", "-", overall_status]]
+        stats_rows = [["ΔE76", "-", "-", "-", "-", ""], ["ΔE94", "-", "-", "-", "-", ""], ["ΔE00", "-", "-", "-", "-", translate_status(overall_status, report_lang)]]
 
     class ExecutiveSummaryHeader(Flowable):
         def __init__(self, status, width):
@@ -982,57 +1233,52 @@ def generate_pdf_headless(ref_img_bgr, sample_img_bgr, analysis_data, out_path, 
     page_width = A4[0] - MARGIN_L - MARGIN_R
     
     # Determine cover status based on scoring method
-    de_score = max(0, min(100, 100 - (mean_de00 * 10)))
-    
     if scoring_method == 'csi':
-        if csi_value >= csi_good:
-            cover_status = 'PASS'
-        elif csi_value >= csi_warn:
-            cover_status = 'CONDITIONAL'
-        else:
-            cover_status = 'FAIL'
+        cover_status = csi_status
     elif scoring_method == 'csi2000':
-        csi2000_val = (csi_value + de_score) / 2.0
-        if csi2000_val >= csi_good:
-            cover_status = 'PASS'
-        elif csi2000_val >= csi_warn:
-            cover_status = 'CONDITIONAL'
-        else:
-            cover_status = 'FAIL'
+        csi2000_val = (csi_value + mean_de00) / 2.0
+        csi2000_pass_thr = (color_pass_thr + csi_pass_thr) / 2.0
+        csi2000_cond_thr = (color_cond_thr + csi_cond_thr) / 2.0
+        cover_status = resolve_deltae_status(csi2000_val, csi2000_pass_thr, csi2000_cond_thr)
     else:
         cover_status = overall_status
     
-    elements.append(ExecutiveSummaryHeader(cover_status, page_width))
-    elements.append(Spacer(1, 0.1*inch))
-    
-    # Primary score display based on scoring method
-    secondary_style = ParagraphStyle('SecondaryScore', parent=StyleSmall, alignment=TA_CENTER, fontSize=9, spaceAfter=6)
-    if scoring_method == 'csi':
-        primary_style = ParagraphStyle('PrimaryScore', parent=styles['Heading2'], alignment=TA_CENTER, textColor=csi_color, fontSize=14, spaceAfter=4)
-        elements.append(Paragraph(f"<b>{tr('color_similarity_index')}: {csi_value:.2f} / 100</b>", primary_style))
-        elements.append(Paragraph(f"\u0394E2000 {tr('average')}: {mean_de00:.2f} (Score: {de_score:.1f})", secondary_style))
-    elif scoring_method == 'csi2000':
-        csi2000_val = (csi_value + de_score) / 2.0
-        csi2000_color = GREEN if cover_status == 'PASS' else (ORANGE if cover_status == 'CONDITIONAL' else RED)
-        primary_style = ParagraphStyle('PrimaryScore', parent=styles['Heading2'], alignment=TA_CENTER, textColor=csi2000_color, fontSize=14, spaceAfter=4)
-        elements.append(Paragraph(f"<b>CSI2000: {csi2000_val:.1f} / 100</b>", primary_style))
-        elements.append(Paragraph(f"CSI: {csi_value:.2f} | \u0394E2000 Score: {de_score:.1f}", secondary_style))
-    else:
-        de_color = GREEN if overall_status == 'PASS' else (ORANGE if overall_status == 'CONDITIONAL' else RED)
-        primary_style = ParagraphStyle('PrimaryScore', parent=styles['Heading2'], alignment=TA_CENTER, textColor=de_color, fontSize=14, spaceAfter=4)
-        elements.append(Paragraph(f"<b>\u0394E2000 Score: {de_score:.1f} / 100</b>", primary_style))
-        elements.append(Paragraph(f"{tr('color_similarity_index')}: {csi_value:.2f} / 100", secondary_style))
-    elements.append(Spacer(1, 0.15*inch))
+    if sections.get('exec_summary', True):
+        elements.append(ExecutiveSummaryHeader(cover_status, page_width))
+        elements.append(Spacer(1, 0.1*inch))
+        
+        # Primary score display based on scoring method
+        secondary_style = ParagraphStyle('SecondaryScore', parent=StyleSmall, alignment=TA_CENTER, fontSize=9, spaceAfter=6)
+        if scoring_method == 'csi':
+            primary_style = ParagraphStyle('PrimaryScore', parent=styles['Heading2'], alignment=TA_CENTER, textColor=csi_color, fontSize=14, spaceAfter=4)
+            elements.append(Paragraph(f"<b>{tr('color_similarity_index')}: {csi_value:.4f}</b>", primary_style))
+            elements.append(Paragraph(f"{tr('pixels')}: {csi_pixel_count:,}", secondary_style))
+            elements.append(Paragraph(f"ΔE00 {tr('average')}: {mean_de00:.2f}", secondary_style))
+        elif scoring_method == 'csi2000':
+            csi2000_val = (csi_value + mean_de00) / 2.0
+            csi2000_color = GREEN if cover_status == 'PASS' else (ORANGE if cover_status == 'CONDITIONAL' else RED)
+            primary_style = ParagraphStyle('PrimaryScore', parent=styles['Heading2'], alignment=TA_CENTER, textColor=csi2000_color, fontSize=14, spaceAfter=4)
+            elements.append(Paragraph(f"<b>CSI2000: {csi2000_val:.4f}</b>", primary_style))
+            elements.append(Paragraph(f"CSI: {csi_value:.4f} | {tr('pixels')}: {csi_pixel_count:,}", secondary_style))
+            elements.append(Paragraph(f"ΔE00 {tr('average')}: {mean_de00:.2f}", secondary_style))
+        else:
+            de_color = GREEN if overall_status == 'PASS' else (ORANGE if overall_status == 'CONDITIONAL' else RED)
+            primary_style = ParagraphStyle('PrimaryScore', parent=styles['Heading2'], alignment=TA_CENTER, textColor=de_color, fontSize=14, spaceAfter=4)
+            elements.append(Paragraph(f"<b>ΔE00 {tr('average')}: {mean_de00:.2f}</b>", primary_style))
+            elements.append(Paragraph(f"{tr('color_similarity_index')}: {csi_value:.4f} | {tr('pixels')}: {csi_pixel_count:,}", secondary_style))
+        elements.append(Spacer(1, 0.15*inch))
 
-    stat_data = [["Metric", tr('average'), tr('std_dev'), tr('minimum'), tr('maximum'), tr('status')]] + stats_rows
-    t_stat = make_table(stat_data, colWidths=[1.2*inch, 1.0*inch, 1.0*inch, 1.0*inch, 1.0*inch, 1.5*inch])
-    t_stat.setStyle(TableStyle([
-        ('BACKGROUND', (0,0), (-1,0), NEUTRAL_L),
-        ('BACKGROUND', (5,3), (5,3), STATUS_COLORS.get(overall_status, colors.black)),
-        ('TEXTCOLOR', (5,3), (5,3), colors.white),
-        ('FONTNAME', (5,3), (5,3), PDF_FONT_BOLD),
-    ]))
-    elements.append(t_stat)
+    if sections.get('stats', True):
+        stat_data = [[tr('metric'), tr('average'), tr('std_dev'), tr('minimum'), tr('maximum'), tr('status')]] + stats_rows
+        t_stat = make_table(stat_data, colWidths=[1.2*inch, 1.0*inch, 1.0*inch, 1.0*inch, 1.0*inch, 1.5*inch])
+        t_stat.setStyle(TableStyle([
+            ('BACKGROUND', (0,0), (-1,0), NEUTRAL_L),
+            ('BACKGROUND', (5,3), (5,3), STATUS_COLORS.get(overall_status, colors.black)),
+            ('TEXTCOLOR', (5,3), (5,3), colors.white),
+            ('FONTNAME', (5,3), (5,3), PDF_FONT_BOLD),
+        ]))
+        elements.append(t_stat)
+
     elements.append(PageBreak())
     
     # Images with overlay
@@ -1052,20 +1298,21 @@ def generate_pdf_headless(ref_img_bgr, sample_img_bgr, analysis_data, out_path, 
             ly = gy - crop_off_y
             local_points.append((lx, ly))
     
-    overlay_ref = overlay_circles(ref_img_bgr, local_points, r)
-    overlay_sam = overlay_circles(sample_img_bgr, local_points, r)
-    
-    img_table_data = [
-        [numpy_to_rl(overlay_ref, 3.2*inch, 2.5*inch), numpy_to_rl(overlay_sam, 3.2*inch, 2.5*inch)],
-        [Paragraph(f"<b>{tr('reference')}</b>", StyleSmall), Paragraph(f"<b>{tr('sample')}</b>", StyleSmall)]
-    ]
-    t_imgs = Table(img_table_data, colWidths=[3.5*inch, 3.5*inch])
-    t_imgs.setStyle(TableStyle([('ALIGN', (0,0), (-1,-1), 'CENTER')]))
-    elements.append(KeepTogether([
-        Paragraph(tr('visual_comparison'), StyleH1),
-        t_imgs,
-        Spacer(1, 0.2*inch),
-    ]))
+    if sections.get('visual_comparison', True):
+        overlay_ref = overlay_circles(ref_img_bgr, local_points, r)
+        overlay_sam = overlay_circles(sample_img_bgr, local_points, r)
+        
+        img_table_data = [
+            [numpy_to_rl(overlay_ref, 3.2*inch, 2.5*inch), numpy_to_rl(overlay_sam, 3.2*inch, 2.5*inch)],
+            [Paragraph(f"<b>{tr('reference')}</b>", StyleSmall), Paragraph(f"<b>{tr('sample')}</b>", StyleSmall)]
+        ]
+        t_imgs = Table(img_table_data, colWidths=[3.5*inch, 3.5*inch])
+        t_imgs.setStyle(TableStyle([('ALIGN', (0,0), (-1,-1), 'CENTER')]))
+        elements.append(KeepTogether([
+            Paragraph(tr('visual_comparison'), StyleH1),
+            t_imgs,
+            Spacer(1, 0.2*inch),
+        ]))
     
     # Regional Analysis
     if sections.get('color_spaces', True) and reg_stats:
@@ -1179,8 +1426,8 @@ def generate_pdf_headless(ref_img_bgr, sample_img_bgr, analysis_data, out_path, 
             if sections.get('visualizations', True):
                 scatter_path = os.path.join(temp_dir, "lab_scatter.png")
                 bar_path = os.path.join(temp_dir, "lab_bars.png")
-                plot_lab_scatter(reg_stats, scatter_path, ref_label=tr('reference'), sam_label=tr('sample'), title=tr('lab_scatter_title'))
-                plot_lab_bars(reg_stats, bar_path, ref_label=tr('reference'), sam_label=tr('sample'), title=tr('lab_components_mean'))
+                plot_lab_scatter(reg_stats, scatter_path, ref_label=tr('reference'), sam_label=tr('sample'), title=tr('lab_scatter_title'), tr=tr)
+                plot_lab_bars(reg_stats, bar_path, ref_label=tr('reference'), sam_label=tr('sample'), title=tr('lab_components_mean'), tr=tr)
                 elements.append(KeepTogether([
                     Paragraph(tr('lab_visualizations'), StyleH2),
                     RLImage(scatter_path, 4.5*inch, 3.5*inch),
@@ -1227,13 +1474,13 @@ def generate_pdf_headless(ref_img_bgr, sample_img_bgr, analysis_data, out_path, 
     
     # Comparison Metrics
     if sections.get('diff_metrics', True) and reg_stats:
-        de_data = [[tr('region'), "ΔE76", "ΔE94", "ΔE2000", tr('status')]]
+        de_data = [[tr('region'), "ΔE76", "ΔE94", "ΔE00", tr('status')]]
         for item in reg_stats:
-            de_data.append([str(item['id']), f"{item['de76']:.2f}", f"{item['de94']:.2f}", f"{item['de00']:.2f}", item['status']])
+            de_data.append([str(item['id']), f"{item['de76']:.2f}", f"{item['de94']:.2f}", f"{item['de00']:.2f}", translate_status(item['status'], report_lang)])
         t_de = make_table(de_data, colWidths=[1.0*inch, 1.5*inch, 1.5*inch, 1.5*inch, 1.5*inch])
         cmds = []
-        for i, row in enumerate(de_data[1:], 1):
-            cmds.append(('BACKGROUND', (4,i), (4,i), STATUS_COLORS.get(row[-1], colors.black)))
+        for i, item in enumerate(reg_stats, 1):
+            cmds.append(('BACKGROUND', (4,i), (4,i), STATUS_COLORS.get(item['status'], colors.black)))
             cmds.append(('TEXTCOLOR', (4,i), (4,i), colors.white))
         t_de.setStyle(TableStyle(cmds))
         elements.append(KeepTogether([
@@ -1262,14 +1509,14 @@ def generate_pdf_headless(ref_img_bgr, sample_img_bgr, analysis_data, out_path, 
             t_de_sum.setStyle(TableStyle(de_sum_cmds))
             elements.append(KeepTogether([
                 Paragraph(tr('de_summary_statistics'), StyleH2),
-                Paragraph(f"{tr('decision_metric')}: ΔE2000", StyleSmall),
+                Paragraph(f"{tr('decision_metric')}: ΔE00", StyleSmall),
                 t_de_sum,
                 Spacer(1, 0.2*inch),
             ]))
     
     # Illuminant-Based Color Analysis
     if sections.get('illuminant_analysis', True) and reg_stats:
-        ill_data = [[tr('illuminant'), 'Mean ΔE2000', tr('csi'), tr('status')]]
+        ill_data = [[tr('illuminant'), f"{tr('average')} ΔE00", tr('csi'), tr('status')]]
         
         for ill in test_illuminants:
             ill_key = ill.strip()
@@ -1278,7 +1525,6 @@ def generate_pdf_headless(ref_img_bgr, sample_img_bgr, analysis_data, out_path, 
             if ill_key == primary_ill:
                 # Use the canonical values from the main analysis
                 mean_ill_de = float(mean_de00)
-                ill_csi = float(csi_value)
             else:
                 # Chromatic adaptation for non-primary illuminants
                 ill_de_values = []
@@ -1296,16 +1542,16 @@ def generate_pdf_headless(ref_img_bgr, sample_img_bgr, analysis_data, out_path, 
                     ill_de_values.append(d00)
                     
                 mean_ill_de = np.mean(ill_de_values) if ill_de_values else 0.0
-                ill_csi = max(0.0, min(100.0, 100.0 - (mean_ill_de * 10.0)))
+            if ill_key == primary_ill:
+                ill_csi = float(csi_value)
+            else:
+                ill_csi = float(compute_csi_details(ref_img_bgr, sample_img_bgr, illuminant=ill_key)['value'])
+
+            status = resolve_deltae_status(ill_csi, csi_pass_thr, csi_cond_thr)
             
-            # Status
-            if ill_csi >= 90.0: status = "PASS"
-            elif ill_csi >= 70.0: status = "CONDITIONAL"
-            else: status = "FAIL"
+            ill_data.append([ill_key, f"{mean_ill_de:.2f}", f"{ill_csi:.4f}", translate_status(status, report_lang)])
             
-            ill_data.append([ill_key, f"{mean_ill_de:.2f}", f"{ill_csi:.2f}", status])
-            
-        t_ill = make_table(ill_data, colWidths=[2.0*inch, 2.0*inch, 1.5*inch, 1.5*inch])
+        t_ill = make_table(ill_data, colWidths=[1.4*inch, 1.7*inch, 1.6*inch, 1.3*inch])
         
         # Add dynamic styling for status column
         ill_table_styles = [
@@ -1318,7 +1564,7 @@ def generate_pdf_headless(ref_img_bgr, sample_img_bgr, analysis_data, out_path, 
         
         for r_idx, row in enumerate(ill_data):
             if r_idx == 0: continue
-            stat = row[3]
+            stat = resolve_deltae_status(float(row[2]), csi_pass_thr, csi_cond_thr)
             color = STATUS_COLORS.get(stat, colors.black)
             ill_table_styles.append(('TEXTCOLOR', (3, r_idx), (3, r_idx), color))
             if stat == "PASS": ill_table_styles.append(('FONTNAME', (3, r_idx), (3, r_idx), PDF_FONT_BOLD))
@@ -1327,7 +1573,6 @@ def generate_pdf_headless(ref_img_bgr, sample_img_bgr, analysis_data, out_path, 
         elements.append(KeepTogether([
             Spacer(1, 0.3*inch),
             Paragraph(tr('illuminant_analysis'), StyleH1),
-            Paragraph(tr('illuminant_analysis') + " - " + tr('color_similarity_index'), StyleSmall),
             Spacer(1, 0.1*inch),
             t_ill,
             Spacer(1, 0.3*inch),
@@ -1344,7 +1589,7 @@ def generate_pdf_headless(ref_img_bgr, sample_img_bgr, analysis_data, out_path, 
             spec_path = os.path.join(temp_dir, "spec.png")
             mean_rgb_ref = np.mean([x['ref']['rgb01'] for x in reg_stats], axis=0)
             mean_rgb_sam = np.mean([x['sam']['rgb01'] for x in reg_stats], axis=0)
-            plot_spectral_proxy(mean_rgb_ref, mean_rgb_sam, spec_path)
+            plot_spectral_proxy(mean_rgb_ref, mean_rgb_sam, spec_path, tr=tr)
             kt_items = []
             if not viz_heading_used:
                 kt_items.append(viz_heading)
@@ -1359,10 +1604,7 @@ def generate_pdf_headless(ref_img_bgr, sample_img_bgr, analysis_data, out_path, 
         
         if sections.get('histograms', True):
             hist_path = os.path.join(temp_dir, "hist_dual.png")
-            ref_hist_title = 'Referans RGB Histogramı' if report_lang == 'tr' else 'Reference RGB Histogram'
-            sam_hist_title = 'Numune RGB Histogramı' if report_lang == 'tr' else 'Sample RGB Histogram'
-            plot_rgb_histograms_dual(ref_img_bgr, sample_img_bgr, hist_path,
-                                     ref_title=ref_hist_title, sam_title=sam_hist_title)
+            plot_rgb_histograms_dual(ref_img_bgr, sample_img_bgr, hist_path, tr=tr)
             hist_interp = tr('histogram_interpretation')
             kt_items = []
             if not viz_heading_used:
@@ -1383,7 +1625,7 @@ def generate_pdf_headless(ref_img_bgr, sample_img_bgr, analysis_data, out_path, 
             sam_lab_full = cv2.cvtColor(sample_img_bgr, cv2.COLOR_BGR2LAB).astype(np.float32)
             diff_map = np.sqrt(np.sum((ref_lab_full - sam_lab_full) ** 2, axis=2))
             heatmap_path = os.path.join(temp_dir, "hm.png")
-            plot_heatmap(diff_map, "ΔE Heatmap", heatmap_path)
+            plot_heatmap(diff_map, tr('fig_de_heatmap'), heatmap_path, tr=tr)
             kt_items = []
             if not viz_heading_used:
                 kt_items.append(viz_heading)
@@ -1414,8 +1656,8 @@ def generate_pdf_headless(ref_img_bgr, sample_img_bgr, analysis_data, out_path, 
             csi_value=csi_value,
             pass_thr=pass_thr,
             cond_thr=cond_thr,
-            csi_good_thr=csi_good,
-            csi_warn_thr=csi_warn,
+            csi_good_thr=csi_pass_thr,
+            csi_warn_thr=csi_cond_thr,
             lang=report_lang
         )
 

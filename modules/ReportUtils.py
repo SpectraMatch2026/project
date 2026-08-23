@@ -261,7 +261,12 @@ def generate_unified_cover(output_path, config, color_data=None, pattern_data=No
     mode is inferred: both=dual, color_data only=color-only, pattern_data only=pattern-only
     """
     from reportlab.platypus import SimpleDocTemplate
-    from modules.ReportTranslations import get_translator, translate_status
+    from modules.ReportTranslations import (
+        get_translator,
+        translate_status,
+        format_color_method_label,
+        format_pattern_method_label,
+    )
     
     cfg = config or {}
     report_lang = cfg.get('report_lang', 'en')
@@ -385,16 +390,22 @@ def generate_unified_cover(output_path, config, color_data=None, pattern_data=No
     score_title_style = ParagraphStyle('ScoreTitle', parent=styles['Heading3'], fontName=PDF_FONT_BOLD,
                                         fontSize=11, textColor=BLUE1, alignment=TA_CENTER, spaceAfter=4)
     
-    def build_score_card(label, score, status, method_label):
+    def build_score_card(label, score, status, method_label, method_key=None, score_kind='pattern'):
         sc = _score_color(status)
+        if score_kind == 'color':
+            method_text = format_color_method_label(method_key or method_label, report_lang)
+            score_text = f"{float(score):.4f}"
+        else:
+            method_text = format_pattern_method_label(method_key or method_label, report_lang)
+            score_text = f"{float(score):.1f}"
         card = []
         card.append(Paragraph(f"<b>{label}</b>", score_title_style))
         score_style = ParagraphStyle('ScoreVal', parent=styles['Heading2'], fontName=PDF_FONT_BOLD,
                                       fontSize=20, textColor=sc, alignment=TA_CENTER, spaceAfter=2)
-        card.append(Paragraph(f"{score:.1f}", score_style))
+        card.append(Paragraph(score_text, score_style))
         method_style = ParagraphStyle('ScoreMethod', parent=StyleSmall, fontSize=8,
                                        alignment=TA_CENTER, textColor=NEUTRAL, spaceAfter=4)
-        card.append(Paragraph(method_label, method_style))
+        card.append(Paragraph(method_text, method_style))
         status_style = ParagraphStyle('ScoreStatus', parent=styles['BodyText'], fontName=PDF_FONT_BOLD,
                                        fontSize=10, textColor=sc, alignment=TA_CENTER, spaceAfter=2)
         card.append(Paragraph(translate_status(status, report_lang), status_style))
@@ -402,10 +413,22 @@ def generate_unified_cover(output_path, config, color_data=None, pattern_data=No
     
     if has_color and has_pattern:
         # Two columns: Left=Pattern, Right=Color
-        left_card = build_score_card(tr('pattern_score_label'), pattern_data['score'],
-                                      pattern_data['status'], pattern_data['method_label'])
-        right_card = build_score_card(tr('color_score_label'), color_data['score'],
-                                       color_data['status'], color_data['method_label'])
+        left_card = build_score_card(
+            tr('pattern_score_label'),
+            pattern_data['score'],
+            pattern_data['status'],
+            pattern_data['method_label'],
+            method_key=pattern_data.get('method_key'),
+            score_kind='pattern',
+        )
+        right_card = build_score_card(
+            tr('color_score_label'),
+            color_data['score'],
+            color_data['status'],
+            color_data['method_label'],
+            method_key=color_data.get('method_key'),
+            score_kind='color',
+        )
         col_w = page_width / 2
         t_scores = Table([[left_card, right_card]], colWidths=[col_w, col_w])
         t_scores.setStyle(TableStyle([
@@ -418,16 +441,28 @@ def generate_unified_cover(output_path, config, color_data=None, pattern_data=No
             ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
         ]))
     elif has_color:
-        card = build_score_card(tr('color_score_label'), color_data['score'],
-                                 color_data['status'], color_data['method_label'])
+        card = build_score_card(
+            tr('color_score_label'),
+            color_data['score'],
+            color_data['status'],
+            color_data['method_label'],
+            method_key=color_data.get('method_key'),
+            score_kind='color',
+        )
         t_scores = Table([[card]], colWidths=[page_width])
         t_scores.setStyle(TableStyle([
             ('VALIGN', (0, 0), (-1, -1), 'TOP'),
             ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
         ]))
     else:
-        card = build_score_card(tr('pattern_score_label'), pattern_data['score'],
-                                 pattern_data['status'], pattern_data['method_label'])
+        card = build_score_card(
+            tr('pattern_score_label'),
+            pattern_data['score'],
+            pattern_data['status'],
+            pattern_data['method_label'],
+            method_key=pattern_data.get('method_key'),
+            score_kind='pattern',
+        )
         t_scores = Table([[card]], colWidths=[page_width])
         t_scores.setStyle(TableStyle([
             ('VALIGN', (0, 0), (-1, -1), 'TOP'),
@@ -435,5 +470,56 @@ def generate_unified_cover(output_path, config, color_data=None, pattern_data=No
         ]))
     
     elements.append(t_scores)
+
+    if has_color and has_pattern:
+        elements.append(Spacer(1, 0.15 * inch))
+        overall_title_style = ParagraphStyle(
+            'OverallSummaryTitle',
+            parent=styles['Heading3'],
+            fontName=PDF_FONT_BOLD,
+            fontSize=11,
+            textColor=BLUE1,
+            alignment=TA_CENTER,
+            spaceAfter=4,
+        )
+        overall_body_style = ParagraphStyle(
+            'OverallSummaryBody',
+            parent=StyleBody,
+            fontName=PDF_FONT_REGULAR,
+            fontSize=9.5,
+            leading=12,
+            alignment=TA_CENTER,
+            textColor=NEUTRAL_DARK,
+        )
+        overall_note_style = ParagraphStyle(
+            'OverallSummaryNote',
+            parent=StyleSmall,
+            fontSize=8,
+            leading=10,
+            alignment=TA_CENTER,
+            textColor=NEUTRAL,
+        )
+        combined_text = (
+            f"{tr('pattern_score')}: {float(pattern_data['score']):.1f} / "
+            f"{tr('color_score')}: {float(color_data['score']):.4f}"
+        )
+        summary_block = Table(
+            [[
+                Paragraph(tr('overall_score'), overall_title_style),
+                Paragraph(combined_text, overall_body_style),
+                Paragraph(tr('overall_score_explainer'), overall_note_style),
+            ]],
+            colWidths=[page_width],
+        )
+        summary_block.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, -1), colors.whitesmoke),
+            ('BOX', (0, 0), (-1, -1), 0.5, NEUTRAL_L),
+            ('TOPPADDING', (0, 0), (-1, -1), 8),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+            ('LEFTPADDING', (0, 0), (-1, -1), 10),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 10),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ]))
+        elements.append(summary_block)
     
     doc.build(elements, onFirstPage=hf, onLaterPages=hf)

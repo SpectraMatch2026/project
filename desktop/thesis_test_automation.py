@@ -30,11 +30,58 @@ import os
 import sys
 import json
 import time
+import copy
 import traceback
 import urllib.request
 import urllib.error
 from datetime import datetime
 from io import BytesIO
+
+
+THESIS_REQUIRED_FIGURES = [
+    '4_1.png', '4_2.png', '4_3.png', '4_4.png', '4_5.png',
+    '4_6.png', '4_7.png', '4_8.png',
+    '5_1.png', '5_2.png', '5_3.png',
+    '5_4.png', '5_5.png', '5_6.png', '5_7.png', '5_8.png',
+    '5_9.png', '5_10.png', '5_11.png', '5_12.png', '5_13.png',
+    '5_14.png', '5_15.png', '5_16.png',
+    '5_17.png', '5_18.png', '5_19.png', '5_20.png', '5_21.png',
+]
+
+
+THESIS_FIXED_FIVE_POINTS = [
+    {'x': 649, 'y': 418, 'isManual': True},
+    {'x': 79,  'y': 229, 'isManual': True},
+    {'x': 856, 'y': 268, 'isManual': True},
+    {'x': 192, 'y': 720, 'isManual': True},
+    {'x': 817, 'y': 655, 'isManual': True},
+]
+
+
+AI_SMARTMATCH_FIGURE_MAP = {
+    # Chapter 5 figures (AI SmartMatch results) — 5_4..5_16
+    '5_4.png': 'histograms.png',
+    '5_5.png': 'lab_scatter.png',
+    '5_6.png': 'lab_bars.png',
+    '5_7.png': 'spectral.png',
+    '5_8.png': 'heatmap.png',
+    '5_9.png': 'structural_ssim.png',
+    '5_10.png': 'phase_correlation.png',
+    '5_11.png': 'gradient_similarity.png',
+    '5_12.png': 'phase_boundary.png',
+    '5_13.png': 'gradient_boundary.png',
+    '5_14.png': 'structural_subplot.png',
+    '5_15.png': 'fourier_spectrum.png',
+    '5_16.png': 'glcm_heatmap.png',
+}
+
+
+HEATMAP_BY_TECHNIQUE = {
+    # Chapter 5 comparative heatmaps by technique — 5_19..5_21
+    '5_19.png': 'Direct_Pixel',
+    '5_20.png': 'AI_SmartMatch',
+    '5_21.png': 'BESTCH',
+}
 
 
 # -- Alignment technique definitions ------------------------------------------
@@ -43,6 +90,51 @@ TECHNIQUES = [
     {'mode': 'ai_smart_match', 'folder': 'AI_SmartMatch', 'label': 'AI SmartMatch'},
     {'mode': 'bestch',         'folder': 'BESTCH',        'label': 'BESTCH'},
 ]
+
+
+def _to_int(value, default=0):
+    try:
+        return int(round(float(value)))
+    except Exception:
+        return default
+
+
+def _image_supports_fixed_points(image_path, points):
+    import cv2
+
+    img = cv2.imread(image_path)
+    if img is None:
+        raise FileNotFoundError(f'Cannot read image for thesis sampling validation: {image_path}')
+
+    h, w = img.shape[:2]
+    for point in points:
+        px = _to_int(point.get('x', 0), 0)
+        py = _to_int(point.get('y', 0), 0)
+        if px < 0 or py < 0 or px >= w or py >= h:
+            return False, f'image {os.path.basename(image_path)} size {w}x{h} does not include point ({px}, {py})'
+    return True, ''
+
+
+def _prepare_thesis_settings(settings, ref_path, sample_path):
+    thesis_settings = copy.deepcopy(settings or {})
+    point_count = _to_int(thesis_settings.get('region_count', 0), 0)
+
+    if point_count != 5:
+        return thesis_settings
+
+    for image_path in (ref_path, sample_path):
+        ok, reason = _image_supports_fixed_points(image_path, THESIS_FIXED_FIVE_POINTS)
+        if not ok:
+            print(f'[ThesisTest] WARNING: fixed 5-point thesis sampling skipped: {reason}')
+            return thesis_settings
+
+    thesis_settings['sampling_mode'] = 'manual'
+    thesis_settings['sampling_points'] = [dict(point) for point in THESIS_FIXED_FIVE_POINTS]
+    thesis_settings['thesis_fixed_points_applied'] = True
+
+    coords_text = ', '.join(f"({p['x']}, {p['y']})" for p in THESIS_FIXED_FIVE_POINTS)
+    print(f'[ThesisTest] Applied fixed 5-point thesis sampling: {coords_text}')
+    return thesis_settings
 
 
 # -- Public entry point --------------------------------------------------------
@@ -86,6 +178,9 @@ def run_thesis_tests(flask_port, current_settings, current_region_data, ref_file
             )
             tech_results.append(r)
 
+        figures_report = _compile_latex_figures(project_dir, thesis_dir, run_dir,
+                                                ref_path, sample_path)
+
         successful   = sum(1 for r in tech_results if r.get('success'))
         total_pdfs   = sum(r.get('pdfs_saved',   0) for r in tech_results)
         total_images = sum(r.get('images_saved', 0) for r in tech_results)
@@ -102,6 +197,7 @@ def run_thesis_tests(flask_port, current_settings, current_region_data, ref_file
                 'total_pdfs'   : total_pdfs,
                 'total_images' : total_images,
             },
+            'latex_figures': figures_report,
         }
         with open(os.path.join(run_dir, 'Master_Index.json'), 'w', encoding='utf-8') as f:
             json.dump(master, f, indent=2, ensure_ascii=False)
@@ -115,11 +211,240 @@ def run_thesis_tests(flask_port, current_settings, current_region_data, ref_file
             'total_pdfs'   : total_pdfs,
             'total_images' : total_images,
             'techniques'   : tech_results,
+            'latex_figures': figures_report,
         }
 
     except Exception as e:
         traceback.print_exc()
         return {'success': False, 'error': str(e)}
+
+
+def _compile_latex_figures(project_dir, thesis_dir, run_dir,
+                           ref_path=None, sample_path=None):
+    """Build a thesis/figures folder containing LaTeX-ready figure files.
+
+    This function fills the known missing thesis figures that can be produced
+    automatically from analysis outputs.
+
+    It intentionally does NOT attempt to capture UI screenshots; those are
+    reported as manual requirements.
+    """
+    import shutil
+    figures_dir = os.path.join(thesis_dir, 'figures')
+    os.makedirs(figures_dir, exist_ok=True)
+
+    def _copy(src, dst_name):
+        dst = os.path.join(figures_dir, dst_name)
+        shutil.copy2(src, dst)
+        return dst
+
+    generated = []
+    missing = []
+
+    # 1) Chapter 5: copy/rename AI SmartMatch analysis images (5_1..5_13)
+    ai_images_dir = os.path.join(run_dir, 'AI_SmartMatch', 'Images')
+    for latex_name, image_name in AI_SMARTMATCH_FIGURE_MAP.items():
+        src = os.path.join(ai_images_dir, image_name)
+        if os.path.exists(src):
+            _copy(src, latex_name)
+            generated.append(latex_name)
+        else:
+            missing.append({'figure': latex_name, 'reason': f'Not generated by analysis (missing file: {src})'})
+
+    # 2) Chapter 5 comparative heatmaps: from each technique (5_16..5_18)
+    for latex_name, folder in HEATMAP_BY_TECHNIQUE.items():
+        src = os.path.join(run_dir, folder, 'Images', 'heatmap.png')
+        if os.path.exists(src):
+            _copy(src, latex_name)
+            generated.append(latex_name)
+        else:
+            missing.append({'figure': latex_name, 'reason': f'Not generated by analysis (missing file: {src})'})
+
+    # 3) Chapter 5 comparison charts: 5_14 (score bars) + 5_15 (ΔE bars)
+    try:
+        data = {}
+        for folder in ('Direct_Pixel', 'AI_SmartMatch', 'BESTCH'):
+            p = os.path.join(run_dir, folder, 'Data.json')
+            if os.path.exists(p):
+                with open(p, 'r', encoding='utf-8') as f:
+                    data[folder] = json.load(f)
+
+        if len(data) >= 2:
+            created = _generate_comparison_charts(figures_dir, data)
+            generated.extend(created)
+        else:
+            missing.append({'figure': '5_17.png', 'reason': 'Not enough technique data to generate comparison chart'})
+            missing.append({'figure': '5_18.png', 'reason': 'Not enough technique data to generate comparison chart'})
+    except Exception as e:
+        missing.append({'figure': '5_17.png', 'reason': f'Failed to generate comparison chart: {e}'})
+        missing.append({'figure': '5_18.png', 'reason': f'Failed to generate comparison chart: {e}'})
+
+    # 4) Chapter 5: alignment studio images (5_1, 5_2, 5_3) — auto-generated
+    try:
+        if ref_path and sample_path:
+            created = _generate_alignment_studio_figures(
+                figures_dir, ref_path, sample_path)
+            generated.extend(created)
+        else:
+            for f in ('5_1.png', '5_2.png', '5_3.png'):
+                missing.append({'figure': f, 'reason': 'No image paths available for studio generation'})
+    except Exception as e:
+        for f in ('5_1.png', '5_2.png', '5_3.png'):
+            missing.append({'figure': f, 'reason': f'Failed to generate studio figure: {e}'})
+
+    # 5) Chapter 4 UI screenshots + system flowchart: manual
+    for f in ('4_1.png', '4_2.png', '4_3.png', '4_4.png', '4_5.png',
+              '4_6.png', '4_7.png', '4_8.png'):
+        if f not in generated:
+            missing.append({'figure': f, 'reason': 'Manual screenshot required (UI figure)'})
+
+
+    # 7) Sanity check: report any other required figures not covered
+    for f in THESIS_REQUIRED_FIGURES:
+        out_path = os.path.join(figures_dir, f)
+        if not os.path.exists(out_path) and not any(m.get('figure') == f for m in missing):
+            missing.append({'figure': f, 'reason': 'Not generated by automation (no rule defined)'})
+
+    return {
+        'figures_dir': figures_dir,
+        'required_count': len(THESIS_REQUIRED_FIGURES),
+        'generated_count': len({*generated}),
+        'generated': sorted({*generated}),
+        'missing_count': len(missing),
+        'missing': sorted(missing, key=lambda x: x.get('figure', '')),
+        'notes': [
+            'Chapter 5 alignment studio images (5_1..5_3) are auto-generated.',
+            'Chapter 5 figures (5_4..5_16) are exported from AI SmartMatch analysis images.',
+            'Chapter 5 comparison charts (5_17, 5_18) are auto-generated from Data.json.',
+            'Chapter 5 comparative heatmaps (5_19..5_21) are exported from each technique.',
+            'Chapter 4 UI screenshots (4_1..4_8) must be captured/created manually.',
+        ],
+    }
+
+
+def _generate_comparison_charts(figures_dir, technique_data):
+    """Create 5_17.png (score comparison) and 5_18.png (ΔE comparison)."""
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+
+    order = ['Direct_Pixel', 'AI_SmartMatch', 'BESTCH']
+    labels = ['Direct Pixel', 'AI SmartMatch', 'BESTCH']
+
+    def _get(d, path, default=0.0):
+        cur = d
+        for k in path:
+            if not isinstance(cur, dict) or k not in cur:
+                return default
+            cur = cur[k]
+        try:
+            return float(cur)
+        except Exception:
+            return default
+
+    color_scores = []
+    pattern_scores = []
+    overall_scores = []
+    mean_de00 = []
+
+    for key in order:
+        doc = technique_data.get(key, {})
+        color_scores.append(_get(doc, ['scores', 'color_score'], 0.0))
+        pattern_scores.append(_get(doc, ['scores', 'pattern_score'], 0.0))
+        overall_scores.append(_get(doc, ['scores', 'overall_score'], 0.0))
+        mean_de00.append(_get(doc, ['color_analysis', 'mean_de00'], 0.0))
+
+    created = []
+
+    # 5_17: grouped bar chart (color/pattern/overall)
+    x = range(len(labels))
+    w = 0.25
+    fig, ax = plt.subplots(figsize=(8.5, 4.2), dpi=160)
+    ax.bar([i - w for i in x], color_scores, width=w, label='Color Score')
+    ax.bar([i for i in x], pattern_scores, width=w, label='Pattern Score')
+    ax.bar([i + w for i in x], overall_scores, width=w, label='Overall Score')
+    ax.set_xticks(list(x))
+    ax.set_xticklabels(labels)
+    ax.set_ylim(0, 105)
+    ax.set_ylabel('Score (%)')
+    ax.grid(axis='y', alpha=0.25)
+    ax.legend(loc='lower right', frameon=False)
+    fig.tight_layout()
+    p1 = os.path.join(figures_dir, '5_17.png')
+    fig.savefig(p1)
+    plt.close(fig)
+    created.append('5_17.png')
+
+    # 5_18: bar chart mean ΔE00
+    fig, ax = plt.subplots(figsize=(8.5, 3.8), dpi=160)
+    ax.bar(labels, mean_de00, color=['#2980B9', '#8E44AD', '#27AE60'])
+    ax.set_ylabel('Mean ΔE00')
+    ax.grid(axis='y', alpha=0.25)
+    fig.tight_layout()
+    p2 = os.path.join(figures_dir, '5_18.png')
+    fig.savefig(p2)
+    plt.close(fig)
+    created.append('5_18.png')
+
+    return created
+
+
+def _generate_alignment_studio_figures(figures_dir, ref_path, sample_path):
+    """Create 5_1/5_2/5_3: alignment studio side-by-side images.
+
+    Each figure shows Reference | Technique-Applied Sample, mimicking
+    the Alignment Studio preview for each of the three techniques.
+
+    5_1.png — Direct Pixel  (no transformation)
+    5_2.png — AI SmartMatch (multi-stage adaptive alignment)
+    5_3.png — BESTCH        (best-region crop)
+    """
+    import cv2
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+    from modules.ImageAlignmentBackend import apply_alignment
+
+    ref = cv2.imread(ref_path)
+    sam = cv2.imread(sample_path)
+    if ref is None or sam is None:
+        raise FileNotFoundError(f'Cannot read images: {ref_path}, {sample_path}')
+
+    techniques = [
+        ('direct',         'Dogrudan Piksel',
+         '5_1.png', 'Referans Goruntu',       'Numune (Degisiklik Yok)'),
+        ('ai_smart_match', 'AI SmartMatch',
+         '5_2.png', 'Referans Goruntu',       'Hizalanmis Numune'),
+        ('bestch',         'BESTCH',
+         '5_3.png', 'Referans (Kirpilmis)',   'Numune (Kirpilmis)'),
+    ]
+
+    created = []
+    for mode, label, fname, ref_title, sam_title in techniques:
+        result = apply_alignment(ref.copy(), sam.copy(), mode)
+        aligned_sam = result['aligned_sample']
+        show_ref = result.get('ref_cropped', ref) if mode == 'bestch' else ref
+
+        ref_rgb = cv2.cvtColor(show_ref, cv2.COLOR_BGR2RGB)
+        sam_rgb = cv2.cvtColor(aligned_sam, cv2.COLOR_BGR2RGB)
+
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(13, 5.5), dpi=150)
+        ax1.imshow(ref_rgb)
+        ax1.set_title(ref_title, fontsize=12, fontweight='bold', pad=10)
+        ax1.axis('off')
+        ax2.imshow(sam_rgb)
+        ax2.set_title(sam_title, fontsize=12, fontweight='bold', pad=10)
+        ax2.axis('off')
+        fig.suptitle(label, fontsize=14, fontweight='bold', y=0.98)
+        fig.tight_layout(rect=[0, 0, 1, 0.94])
+
+        out = os.path.join(figures_dir, fname)
+        fig.savefig(out, bbox_inches='tight', facecolor='white', dpi=150)
+        plt.close(fig)
+        created.append(fname)
+        print(f'  [OK] Generated {fname} ({label})')
+
+    return created
 
 
 
@@ -166,7 +491,7 @@ def _run_technique(tech, base_url, run_dir, settings, region_data,
 
     t_start = time.time()
 
-    test_settings = dict(settings)
+    test_settings = _prepare_thesis_settings(settings, ref_path, sample_path)
     test_settings['alignment_mode'] = mode
 
     try:
